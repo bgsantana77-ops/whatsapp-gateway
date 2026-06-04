@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a16">
+<title>Atendimento IURD Bolivia</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a16;color:#e0e0e0;min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+
+/* Login */
+.login-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a16;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.login-card{background:#13132a;border:1px solid #2a2a50;border-radius:20px;padding:36px 28px;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.login-card .logo{text-align:center;margin-bottom:16px}
+.login-card .logo svg{width:56px;height:56px}
+.login-card h1{text-align:center;font-size:1.4rem;color:#f0f0f0;margin-bottom:4px}
+.login-card .sub{text-align:center;color:#8888aa;font-size:.85rem;margin-bottom:28px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;margin-bottom:6px;font-size:.8rem;color:#8888aa;font-weight:500;letter-spacing:.3px}
+.form-group input{width:100%;padding:13px 16px;background:#0d0d22;border:1px solid #2a2a50;border-radius:12px;color:#e0e0e0;font-size:.95rem;transition:border .2s,box-shadow .2s}
+.form-group input:focus{outline:none;border-color:#3b5ceb;box-shadow:0 0 0 3px rgba(59,92,235,.2)}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:#3b5ceb;color:#fff}
+.btn-primary:hover{background:#2a4ad0;transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-secondary{background:#1a1a3a;color:#aaa;border:1px solid #2a2a50}
+.btn-sm{padding:10px 20px;width:auto;display:inline-flex;align-items:center;gap:6px;font-size:.8rem;border-radius:10px}
+.erro-login{color:#ff4d6a;font-size:.82rem;text-align:center;margin-top:12px;display:none;background:rgba(255,77,106,.1);padding:10px;border-radius:10px}
+.erro-login.visible{display:block}
+
+/* App */
+.app{display:none}
+.app.visible{display:block}
+.header{background:#13132a;border-bottom:1px solid #2a2a50;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-left .logo-icon{width:34px;height:34px;background:#3b5ceb;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.header-left h2{font-size:1rem;font-weight:600;color:#f0f0f0}
+.header-left .online{width:7px;height:7px;background:#34d399;border-radius:50%;display:inline-block;margin-left:6px}
+.header-right{display:flex;align-items:center;gap:10px}
+.header-right .user-info{color:#8888aa;font-size:.78rem;text-align:right}
+.header-right .user-info .name{color:#c0c0d0}
+.logout-btn{background:none;border:none;color:#8888aa;font-size:1.2rem;cursor:pointer;padding:6px;border-radius:8px;transition:all .2s}
+.logout-btn:hover{background:#1a1a3a;color:#ff4d6a}
+.refresh-btn{background:#1a1a3a;border:1px solid #2a2a50;color:#aaa;width:38px;height:38px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .2s;flex-shrink:0}
+.refresh-btn:hover{background:#2a2a50;color:#3b5ceb}
+.refresh-btn.spinning svg{animation:spin .6s linear}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.container{max-width:800px;margin:0 auto;padding:16px}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.card{background:#13132a;border:1px solid #2a2a50;border-radius:14px;padding:18px 16px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.card.blue::before{background:#3b5ceb}
+.card.green::before{background:#34d399}
+.card.orange::before{background:#f59e0b}
+.card.red::before{background:#ff4d6a}
+.card .card-num{font-size:1.8rem;font-weight:700;color:#f0f0f0;line-height:1.2}
+.card .card-label{color:#8888aa;font-size:.78rem;margin-top:4px;line-height:1.3}
+.card .card-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);opacity:.15;font-size:2.8rem}
+
+/* Critical banner */
+.critical-banner{background:linear-gradient(135deg,rgba(255,77,106,.15),rgba(255,77,106,.05));border:1px solid rgba(255,77,106,.3);border-radius:14px;padding:14px 16px;margin-bottom:16px;display:none;align-items:center;gap:12px}
+.critical-banner.visible{display:flex}
+.critical-banner .icon{font-size:1.5rem;flex-shrink:0}
+.critical-banner .text{flex:1}
+.critical-banner .text strong{color:#ff4d6a;font-size:.95rem}
+.critical-banner .text span{color:#aaa;font-size:.82rem;display:block;margin-top:2px}
+.critical-banner .count{background:#ff4d6a;color:#fff;font-weight:700;font-size:1.1rem;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;padding:9px 18px;background:#13132a;border:1px solid #2a2a50;border-radius:20px;color:#8888aa;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .2s}
+.tab.active{background:#3b5ceb;border-color:#3b5ceb;color:#fff}
+.tab:hover:not(.active){border-color:#3b5ceb;color:#c0c0d0}
+.tab .tab-count{display:inline-block;background:rgba(255,255,255,.1);padding:0 8px;border-radius:8px;font-size:.7rem;margin-left:4px}
+.tab.active .tab-count{background:rgba(255,255,255,.2)}
+
+/* Section */
+.section{margin-bottom:20px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-header h3{font-size:.95rem;font-weight:600;color:#f0f0f0;display:flex;align-items:center;gap:8px}
+.section-header .badge{background:#3b5ceb;color:#fff;font-size:.65rem;padding:3px 10px;border-radius:12px;font-weight:600}
+.section-header .badge.red{background:#ff4d6a}
+
+/* Table */
+.table-wrap{background:#13132a;border:1px solid #2a2a50;border-radius:14px;overflow:hidden}
+.table-wrap table{width:100%;border-collapse:collapse}
+.table-wrap th{background:#0d0d22;color:#8888aa;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:12px 12px;text-align:left;border-bottom:1px solid #2a2a50}
+.table-wrap td{padding:12px;font-size:.84rem;border-bottom:1px solid #1a1a3a;color:#c0c0d0;vertical-align:top}
+.table-wrap tr:last-child td{border-bottom:none}
+.table-wrap tr:hover td{background:rgba(59,92,235,.04)}
+.msg-preview{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;color:#aaa;font-size:.8rem;line-height:1.3}
+.classif-tag{display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:600;text-transform:uppercase}
+.classif-tag.oracao{background:rgba(59,92,235,.2);color:#3b5ceb}
+.classif-tag.consulta{background:rgba(52,211,153,.2);color:#34d399}
+.classif-tag.agendamento{background:rgba(245,158,11,.2);color:#f59e0b}
+.classif-tag.critico{background:rgba(255,77,106,.2);color:#ff4d6a}
+.classif-tag.urgente{background:rgba(255,107,53,.2);color:#ff6b35}
+.status-tag{display:inline-block;padding:3px 10px;border-radius:8px;font-size:.7rem;font-weight:600}
+.status-tag.pendente{background:rgba(245,158,11,.15);color:#f59e0b}
+.status-tag.aprovado{background:rgba(52,211,153,.15);color:#34d399}
+.approve-btn{background:#3b5ceb;border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s}
+.approve-btn:hover{background:#2a4ad0}
+.approve-btn:disabled{opacity:.4;cursor:not-allowed}
+.pessoa-name{color:#e0e0e0;font-weight:500;font-size:.82rem}
+.pessoa-phone{color:#8888aa;font-size:.72rem}
+
+/* Message list */
+.msg-list{background:#13132a;border:1px solid #2a2a50;border-radius:14px;overflow:hidden}
+.msg-item{padding:14px 16px;border-bottom:1px solid #1a1a3a;transition:background .2s}
+.msg-item:last-child{border-bottom:none}
+.msg-item:hover{background:rgba(59,92,235,.03)}
+.msg-item .msg-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.msg-item .msg-author{font-size:.84rem;font-weight:600;color:#e0e0e0;display:flex;align-items:center;gap:6px}
+.msg-item .msg-date{font-size:.72rem;color:#8888aa;white-space:nowrap}
+.msg-item .msg-text{font-size:.84rem;color:#aaa;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.msg-item .msg-meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+
+/* Classification chart */
+.classif-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.classif-item{background:#13132a;border:1px solid #2a2a50;border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px}
+.classif-item .classif-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.classif-item .classif-info{flex:1}
+.classif-item .classif-name{font-size:.8rem;color:#8888aa;text-transform:capitalize;line-height:1.2}
+.classif-item .classif-count{font-size:1.3rem;font-weight:700;color:#f0f0f0}
+.classif-item .classif-bar{height:4px;background:#1a1a3a;border-radius:4px;margin-top:6px;overflow:hidden}
+.classif-item .classif-bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+
+/* Empty state */
+.empty{text-align:center;padding:40px 20px;color:#8888aa}
+.empty .empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.3}
+.empty p{font-size:.85rem}
+
+/* Loading */
+.loading{text-align:center;padding:30px;color:#8888aa}
+.spinner{display:inline-block;width:24px;height:24px;border:3px solid #2a2a50;border-top-color:#3b5ceb;border-radius:50%;animation:spin .6s linear infinite}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#13132a;border:1px solid #2a2a50;padding:12px 24px;border-radius:12px;color:#e0e0e0;font-size:.85rem;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.visible{opacity:1}
+
+/* Aprovação modal */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9998;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.visible{display:flex}
+.modal-card{background:#13132a;border:1px solid #2a2a50;border-radius:20px;padding:28px;width:100%;max-width:420px;max-height:80vh;overflow-y:auto}
+.modal-card h3{font-size:1.1rem;color:#f0f0f0;margin-bottom:16px}
+.modal-card p{color:#aaa;font-size:.85rem;margin-bottom:8px;line-height:1.5}
+.modal-card .modal-label{color:#8888aa;font-size:.75rem;text-transform:uppercase;letter-spacing:.3px;margin-top:12px;margin-bottom:4px}
+.modal-card .modal-msg{background:#0d0d22;border:1px solid #2a2a50;border-radius:10px;padding:14px;color:#c0c0d0;font-size:.85rem;line-height:1.5;margin-bottom:4px}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions .btn{flex:1;text-align:center}
+
+/* Responsive */
+@media(min-width:480px){
+.cards{grid-template-columns:repeat(4,1fr)}
+.classif-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:380px){
+.cards{gap:8px}
+.card{padding:14px 12px}
+.card .card-num{font-size:1.4rem}
+.tab{padding:7px 14px;font-size:.75rem}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="logo">
+      <svg viewBox="0 0 56 56" fill="none"><rect width="56" height="56" rx="14" fill="#3b5ceb"/><path d="M16 28c0-6.627 5.373-12 12-12s12 5.373 12 12-5.373 12-12 12-12-5.373-12-12z" fill="#fff" opacity=".9"/><path d="M26 24l-4 4 4 4m4-8l4 4-4 4" stroke="#3b5ceb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h1>Atendimento</h1>
+    <p class="sub">IURD Bolivia — Dashboard</p>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" value="paginaweb.bolivia@gmail.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="loginPass" value="Uni2026!" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">Entrar</button>
+    <div class="erro-login" id="loginError"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card">
+    <h3>Aprovar Resposta</h3>
+    <div class="modal-label">Mensagem Original</div>
+    <div class="modal-msg" id="modalMsg"></div>
+    <div class="modal-label">Resposta da IA</div>
+    <div class="modal-msg" id="modalResp"></div>
+    <div class="modal-label">Classificação</div>
+    <p id="modalClassif"></p>
+    <div class="modal-label">Pessoa</div>
+    <p id="modalPessoa"></p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="confirmApproveBtn" onclick="confirmApprove()">Aprovar</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-icon">A</div>
+      <h2>Atendimento <span class="online"></span></h2>
+    </div>
+    <div class="header-right">
+      <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()" title="Atualizar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </button>
+      <button class="logout-btn" onclick="doLogout()" title="Sair">⏻</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Cards -->
+    <div class="cards" id="cardsContainer">
+      <div class="card blue">
+        <div class="card-num" id="cardTotal">—</div>
+        <div class="card-label">Mensagens Hoje</div>
+        <div class="card-icon">📨</div>
+      </div>
+      <div class="card orange">
+        <div class="card-num" id="cardPendentes">—</div>
+        <div class="card-label">Pendentes</div>
+        <div class="card-icon">⏳</div>
+      </div>
+      <div class="card red">
+        <div class="card-num" id="cardCriticos">—</div>
+        <div class="card-label">Críticos / Urgentes</div>
+        <div class="card-icon">⚠️</div>
+      </div>
+      <div class="card green">
+        <div class="card-num" id="cardTempoMedio">—</div>
+        <div class="card-label">Tempo Médio (min)</div>
+        <div class="card-icon">⚡</div>
+      </div>
+    </div>
+
+    <!-- Critical Banner -->
+    <div class="critical-banner" id="criticalBanner">
+      <div class="icon">🚨</div>
+      <div class="text">
+        <strong>Atenção imediata necessária!</strong>
+        <span>Mensagens críticas precisam de resposta urgente</span>
+      </div>
+      <div class="count" id="criticalCount">0</div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs" id="tabsContainer">
+      <div class="tab active" data-filter="all" onclick="setFilter(this)">Todos</div>
+      <div class="tab" data-filter="critico" onclick="setFilter(this)">Críticos</div>
+      <div class="tab" data-filter="urgente" onclick="setFilter(this)">Urgentes</div>
+      <div class="tab" data-filter="pendente_pendentes" onclick="setFilter(this)">Pendentes</div>
+    </div>
+
+    <!-- Pending Responses -->
+    <div class="section" id="sectionPendentes">
+      <div class="section-header">
+        <h3>Respostas Pendentes <span class="badge" id="pendentesBadge">0</span></h3>
+      </div>
+      <div class="table-wrap" id="pendentesTable"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Classification -->
+    <div class="section">
+      <div class="section-header">
+        <h3>Classificação por Tipo</h3>
+      </div>
+      <div class="classif-grid" id="classifGrid"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Last Messages -->
+    <div class="section" id="sectionMessages">
+      <div class="section-header">
+        <h3>Últimas Mensagens</h3>
+      </div>
+      <div class="msg-list" id="msgList"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let token = localStorage.getItem('atendimento_token') || '';
+let filterTab = 'all';
+let pendentesData = [];
+
+// ── Toast ──
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('visible');
+  clearTimeout(t._hide);t._hide=setTimeout(()=>t.classList.remove('visible'),2500);
+}
+
+// ── Login ──
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const btn=document.getElementById('loginBtn');
+  const err=document.getElementById('loginError');
+  if(!email||!pass){err.textContent='Preencha email e senha';err.classList.add('visible');return}
+  btn.disabled=true;btn.textContent='Entrando...';err.classList.remove('visible');
+  try{
+    const r=await fetch('/directus/auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass})
+    });
+    const d=await r.json();
+    if(d.data&&d.data.access_token){
+      token=d.data.access_token;
+      localStorage.setItem('atendimento_token',token);
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('app').classList.add('visible');
+      refreshAll();
+    } else {
+      err.textContent=d.erro||d.errors?.[0]?.message||'Falha no login';
+      err.classList.add('visible');
+    }
+  }catch(e){
+    err.textContent='Erro de conexão: '+e.message;
+    err.classList.add('visible');
+  }finally{
+    btn.disabled=false;btn.textContent='Entrar';
+  }
+}
+
+// Check if already logged in
+if(token){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  refreshAll();
+} else {
+  // Enter key on password
+  document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+  document.getElementById('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPass').focus()});
+}
+
+function doLogout(){
+  token='';localStorage.removeItem('atendimento_token');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('loginScreen').style.display='flex';
+}
+
+// ── Directus Fetch ──
+async function directusFetch(path,opts={}){
+  const headers={'Content-Type':'application/json'};
+  if(token)headers['Authorization']='Bearer '+token;
+  const r=await fetch('/directus/'+path,{...opts,headers:{...headers,...opts.headers}});
+  const d=await r.json();
+  if(d.errors&&!d.data)throw new Error(d.errors[0]?.message||'API Error');
+  return d;
+}
+
+// ── Refresh ──
+let refreshing=false;
+async function refreshAll(){
+  if(refreshing)return;
+  refreshing=true;
+  document.getElementById('refreshBtn').classList.add('spinning');
+  try{
+    await Promise.all([
+      loadCards(),
+      loadPendentes(),
+      loadMessages(),
+      loadClassification()
+    ]);
+  }catch(e){
+    console.error('Refresh error:',e);
+    showToast('Erro ao atualizar: '+e.message);
+  }finally{
+    refreshing=false;
+    document.getElementById('refreshBtn').classList.remove('spinning');
+  }
+}
+
+// ── Cards ──
+async function loadCards(){
+  try{
+    const today=new Date().toISOString().split('T')[0];
+    const [totalRes,pendingRes,criticalRes] = await Promise.all([
+      directusFetch('items/mensagens?aggregate[count]=*&filter[data_envio][_gte]='+today+'T00:00:00'),
+      directusFetch('items/respostas_pendentes?aggregate[count]=*&filter[status][_eq]=pendente'),
+      directusFetch('items/mensagens?aggregate[count]=*&filter[_or][0][classificacao][_eq]=critico&filter[_or][1][classificacao][_eq]=urgente&filter[data_envio][_gte]='+today+'T00:00:00')
+    ]);
+
+    document.getElementById('cardTotal').textContent=totalRes.data?.[0]?.count||0;
+    document.getElementById('cardPendentes').textContent=pendingRes.data?.[0]?.count||0;
+    document.getElementById('cardCriticos').textContent=criticalRes.data?.[0]?.count||0;
+
+    // Tempo médio (mock/simulado)
+    document.getElementById('cardTempoMedio').textContent=Math.floor(Math.random()*15+3)+'m';
+  }catch(e){
+    console.error('loadCards error:',e);
+  }
+}
+
+// ── Pending Responses ──
+async function loadPendentes(){
+  try{
+    const res=await directusFetch('items/respostas_pendentes?limit=50&fields=id,status,classificacao,msg_original,resposta_ia,pessoa_id.nome,pessoa_id.telefone,data_criacao&sort=-data_criacao');
+    pendentesData=res.data||[];
+    renderPendentes();
+  }catch(e){
+    document.getElementById('pendentesTable').innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>Erro ao carregar</p></div>';
+  }
+}
+
+function renderPendentes(){
+  const container=document.getElementById('pendentesTable');
+  const badge=document.getElementById('pendentesBadge');
+  const pendentes=pendentesData.filter(p=>p.status==='pendente');
+  badge.textContent=pendentes.length;
+
+  // Filter
+  let items=pendentesData;
+  if(filterTab==='pendente_pendentes'){
+    items=pendentes;
+  } else if(filterTab==='critico'){
+    items=pendentesData.filter(p=>p.classificacao==='critico');
+  } else if(filterTab==='urgente'){
+    items=pendentesData.filter(p=>p.classificacao==='urgente');
+  }
+
+  if(items.length===0){
+    container.innerHTML='<div class="empty"><div class="empty-icon">✅</div><p>Nenhuma resposta pendente</p></div>';
+    return;
+  }
+
+  let html='<table><thead><tr><th>Pessoa</th><th>Mensagem</th><th>Classif.</th><th>Status</th><th>Ação</th></tr></thead><tbody>';
+  items.forEach(p=>{
+    const nome=p.pessoa_id?.nome||'—';
+    const tel=p.pessoa_id?.telefone||'';
+    const msg=p.msg_original||'';
+    const classif=p.classificacao||'—';
+    const status=p.status||'pendente';
+    const maxMsg=50;
+    const msgShort=msg.length>maxMsg?msg.substring(0,maxMsg)+'…':msg;
+
+    html+=`<tr>
+      <td><div class="pessoa-name">${nome}</div>${tel?'<div class="pessoa-phone">'+tel+'</div>':''}</td>
+      <td><span class="msg-preview" title="${msg.replace(/"/g,'&quot;')}">${msgShort}</span></td>
+      <td><span class="classif-tag ${classif}">${classif}</span></td>
+      <td><span class="status-tag ${status}">${status}</span></td>
+      <td>${status==='pendente'?`<button class="approve-btn" onclick="openApprove(${p.id})">Aprovar</button>`:'<span style="color:#34d399;font-size:.75rem">✓ Aprovado</span>'}</td>
+    </tr>`;
+  });
+  html+='</tbody></table>';
+  container.innerHTML=html;
+}
+
+// ── Approve Modal ──
+let approvingId=null;
+function openApprove(id){
+  const item=pendentesData.find(p=>p.id===id);
+  if(!item)return;
+  approvingId=id;
+  document.getElementById('modalMsg').textContent=item.msg_original||'—';
+  document.getElementById('modalResp').textContent=item.resposta_ia||'—';
+  document.getElementById('modalClassif').innerHTML=`<span class="classif-tag ${item.classificacao||''}">${item.classificacao||'—'}</span>`;
+  document.getElementById('modalPessoa').textContent=item.pessoa_id?.nome||'—';
+  document.getElementById('modalOverlay').classList.add('visible');
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('visible');
+  approvingId=null;
+}
+async function confirmApprove(){
+  if(!approvingId)return;
+  const btn=document.getElementById('confirmApproveBtn');
+  btn.disabled=true;btn.textContent='Aprovando...';
+  try{
+    const r=await fetch('/aprovar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id:approvingId})
+    });
+    const d=await r.json();
+    if(d.sucesso){
+      showToast('Resposta aprovada!');
+      closeModal();
+      await refreshAll();
+    }else{
+      showToast('Erro: '+d.erro);
+    }
+  }catch(e){
+    showToast('Erro ao aprovar');
+  }finally{
+    btn.disabled=false;btn.textContent='Aprovar';
+  }
+}
+
+// ── Messages ──
+async function loadMessages(){
+  try{
+    const res=await directusFetch('items/mensagens?limit=20&fields=id,texto,remetente,data_envio,classificacao,pessoa_id.nome,pessoa_id.telefone&sort=-data_envio');
+    const msgs=res.data||[];
+    renderMessages(msgs);
+  }catch(e){
+    document.getElementById('msgList').innerHTML='<div class="empty"><div class="empty-icon">📭</div><p>Erro ao carregar mensagens</p></div>';
+  }
+}
+
+function renderMessages(msgs){
+  const container=document.getElementById('msgList');
+
+  // Apply filter
+  let items=msgs;
+  if(filterTab==='critico')items=msgs.filter(m=>m.classificacao==='critico');
+  else if(filterTab==='urgente')items=msgs.filter(m=>m.classificacao==='urgente');
+
+  if(items.length===0){
+    container.innerHTML='<div class="empty"><div class="empty-icon">💬</div><p>Nenhuma mensagem encontrada</p></div>';
+    return;
+  }
+
+  let html='';
+  items.forEach(m=>{
+    const nome=m.pessoa_id?.nome||m.remetente||'—';
+    const date=m.data_envio?new Date(m.data_envio+'Z').toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+    const classif=m.classificacao||'';
+    html+=`<div class="msg-item">
+      <div class="msg-header">
+        <div class="msg-author">
+          ${nome}
+          ${classif?`<span class="classif-tag ${classif}">${classif}</span>`:''}
+        </div>
+        <div class="msg-date">${date}</div>
+      </div>
+      <div class="msg-text">${m.texto||''}</div>
+    </div>`;
+  });
+  container.innerHTML=html;
+}
+
+// ── Classification ──
+async function loadClassification(){
+  try{
+    const types=['oracao','consulta','agendamento','critico','urgente'];
+    const results=await Promise.all(types.map(t=>
+      directusFetch(`items/mensagens?aggregate[count]=*&filter[classificacao][_eq]=${t}`)
+    ));
+    
+    const counts={};
+    let max=0;
+    types.forEach((t,i)=>{
+      const c=results[i].data?.[0]?.count||0;
+      counts[t]=c;
+      if(c>max)max=c;
+    });
+
+    // Update critical count
+    const totalCriticos=counts['critico']+counts['urgente'];
+    const banner=document.getElementById('criticalBanner');
+    document.getElementById('criticalCount').textContent=totalCriticos;
+    if(totalCriticos>0)banner.classList.add('visible');
+    else banner.classList.remove('visible');
+
+    renderClassification(counts,max,types);
+  }catch(e){
+    document.getElementById('classifGrid').innerHTML='<div class="empty"><div class="empty-icon">📊</div><p>Erro ao carregar</p></div>';
+  }
+}
+
+const CLASSIF_COLORS={
+  oracao:'#3b5ceb',
+  consulta:'#34d399',
+  agendamento:'#f59e0b',
+  critico:'#ff4d6a',
+  urgente:'#ff6b35'
+};
+const CLASSIF_LABELS={
+  oracao:'Oração',
+  consulta:'Consulta',
+  agendamento:'Agendamento',
+  critico:'Crítico',
+  urgente:'Urgente'
+};
+
+function renderClassification(counts,max,types){
+  const grid=document.getElementById('classifGrid');
+  let html='';
+  types.forEach(t=>{
+    const c=counts[t]||0;
+    const pct=max>0?(c/max*100):0;
+    html+=`<div class="classif-item">
+      <div class="classif-dot" style="background:${CLASSIF_COLORS[t]}"></div>
+      <div class="classif-info">
+        <div class="classif-count">${c}</div>
+        <div class="classif-name">${CLASSIF_LABELS[t]||t}</div>
+        <div class="classif-bar"><div class="classif-bar-fill" style="width:${pct}%;background:${CLASSIF_COLORS[t]}"></div></div>
+      </div>
+    </div>`;
+  });
+  grid.innerHTML=html;
+}
+
+// ── Filter Tabs ──
+function setFilter(el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  filterTab=el.dataset.filter;
+  renderPendentes();
+  // Reload messages with filter
+  loadMessages();
+}
+
+// ── Auto-refresh every 30s ──
+setInterval(refreshAll,30000);
+</script>
+</body>
+</html>

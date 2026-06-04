@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>IURD Bolivia — Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a16;color:#e0e0e0;padding:12px;min-height:100vh;-webkit-text-size-adjust:100%}
+h1{font-size:18px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.sub{font-size:11px;color:#666;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.card{background:#13132a;border-radius:10px;padding:12px 10px;text-align:center}
+.card .num{font-size:22px;font-weight:700;color:#fff}
+.card .label{font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.card .icons{font-size:16px}
+.chart-section{background:#13132a;border-radius:10px;padding:12px;margin-bottom:10px}
+.chart-section h3{font-size:12px;color:#999;margin-bottom:8px;font-weight:600}
+.chart-section canvas{max-height:160px;width:100%!important}
+.list-section{background:#13132a;border-radius:10px;padding:12px;margin-bottom:10px}
+.list-section h3{font-size:12px;color:#999;margin-bottom:8px;font-weight:600}
+.list-item{padding:8px 0;border-bottom:1px solid#1e1e3a;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.list-item:last-child{border:0}
+.list-item .nm{color:#fff;font-weight:500}
+.list-item .dt{color:#666;font-size:11px}
+.tab-bar{display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab{padding:6px 12px;border-radius:16px;background:#13132a;color:#777;font-size:11px;font-weight:600;white-space:nowrap;border:1px solid transparent;cursor:pointer;transition:.2s}
+.tab.active{background:#3b5ceb;color:#fff;border-color:#3b5ceb}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.loader{text-align:center;padding:60px 20px;color:#555;font-size:13px}
+.loader .sp{display:inline-block;width:32px;height:32px;border:3px solid#1a1a3a;border-top-color:#3b5ceb;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err-box{background:#1e0f0f;border:1px solid#3a1a1a;border-radius:8px;padding:16px;color:#e74c3c;font-size:13px;text-align:center;margin-top:12px;line-height:1.6}
+.err-box button{background:#3b5ceb;color:#fff;border:0;padding:8px 24px;border-radius:6px;font-size:14px;margin-top:10px;cursor:pointer}
+.pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:#2ecc71;margin-right:4px;animation:pulse 2s infinite}
+@keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:9px;font-weight:600}
+.badge-crit{background:#3a1515;color:#e74c3c}
+.badge-urg{background:#3a2a10;color:#e67e22}
+.badge-pen{background:#1a2a3a;color:#f1c40f}
+.badge-ok{background:#0a2a1a;color:#2ecc71}
+.ab{display:none}
+@media(min-width:768px){.grid{grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr}}
+</style>
+<script defer src="chart.umd.min.js" onerror="window.CHART_FAIL=true"></script>
+</head>
+<body>
+
+<div id="app">
+  <div class="loader" id="loadingScreen">
+    <div class="sp"></div>
+    <div>Cargando IURD Bolivia...</div>
+  </div>
+</div>
+
+<script>
+const BASE = '/directus/';
+const TK = 'iurd_tk';
+let t = localStorage.getItem(TK) || '';
+
+async function api(p, method='GET', body=null) {
+  const url = BASE + p;
+  const h = {'Content-Type':'application/json'};
+  if(t) h['Authorization'] = 'Bearer ' + t;
+  const opts = {method, headers:h};
+  if(body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(url, opts);
+    if(r.status===401||r.status===403) { t=''; localStorage.removeItem(TK); return null; }
+    const txt = await r.text();
+    if(!txt) return {data:[]};
+    return JSON.parse(txt);
+  } catch(e) { return null; }
+}
+
+async function doLogin(email, pass) {
+  const r = await api('auth/login', 'POST', {email, password:pass});
+  if(r?.data?.access_token) {
+    t = r.data.access_token;
+    localStorage.setItem(TK, t);
+    render();
+  } else alert('Error al iniciar sesión');
+}
+
+function showLogin() {
+  document.getElementById('app').innerHTML = `
+    <div style="padding:40px 20px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">🔐</div>
+      <h1 style="font-size:20px;margin-bottom:8px">IURD Bolivia</h1>
+      <p style="color:#888;font-size:13px;margin-bottom:24px">Inicia sesión para ver el dashboard</p>
+      <div style="max-width:320px;margin:0 auto">
+        <input id="le" type="email" value="paginaweb.bolivia@gmail.com" placeholder="Email" style="width:100%;padding:12px;margin-bottom:10px;border-radius:8px;border:1px solid#222;background:#13132a;color:#fff;font-size:14px">
+        <input id="lp" type="password" placeholder="Contraseña" style="width:100%;padding:12px;margin-bottom:16px;border-radius:8px;border:1px solid#222;background:#13132a;color:#fff;font-size:14px">
+        <button onclick="doLogin(document.getElementById('le').value,document.getElementById('lp').value)" style="width:100%;padding:12px;border-radius:8px;background:#3b5ceb;color:#fff;border:0;font-size:16px;font-weight:600">Entrar</button>
+      </div>
+    </div>`;
+}
+
+async function count(coll) {
+  const r = await api(`items/${coll}?aggregate[count]=*`);
+  return r?.data?.[0]?.count || 0;
+}
+
+async function fetchAll(coll, params='limit=100') {
+  const r = await api(`items/${coll}?${params}`);
+  return r?.data || [];
+}
+
+async function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = `<div class="loader"><div class="sp"></div><div>Cargando datos...</div></div>`;
+
+  try {
+    // Parallel data loading
+    const [cntP, cntI, cntM, cntPs, cntCv, igs, pends, msgs, crns] = await Promise.all([
+      count('pessoas'), count('igrejas'), count('mensagens'),
+      count('pastores'), count('conversas'),
+      fetchAll('igrejas', 'limit=100&fields=id,nome,cidade&sort=nome'),
+      fetchAll('respostas_pendentes', 'limit=50&fields=id,status,classificacao,msg_original,pessoa_id.nome&sort=-data_criacao'),
+      fetchAll('mensagens', 'limit=15&fields=id,texto,remetente,data_envio,classificacao,pessoa_id.nome&sort=-data_envio'),
+      fetchAll('correntes', 'limit=10&fields=id,nome,dia_semana'),
+    ]);
+
+    const pendsPend = pends.filter(p=>p.status==='pendente');
+    const criticos = pends.filter(p=>p.classificacao==='crítico'||p.classificacao==='urgente');
+
+    // Ciudad stats
+    const cidadeMap = {};
+    igs.forEach(g=>{const c=g.cidade||'Sin ciudad';cidadeMap[c]=(cidadeMap[c]||0)+1;});
+    const cidLabels = Object.keys(cidadeMap);
+    const cidCounts = Object.values(cidadeMap);
+
+    // Pendientes stats
+    const clasifPend = {};
+    pendsPend.forEach(p=>{const c=p.classificacao||'normal';clasifPend[c]=(clasifPend[c]||0)+1;});
+    const plabels = Object.keys(clasifPend);
+    const pvals = Object.values(clasifPend);
+
+    // Corrente do dia
+    const dia = new Date().getDay();
+    const corrDia = crns.find(c=>c.dia_semana===dia);
+
+    const html = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div>
+        <h1>⚡ IURD Bolivia</h1>
+        <div class="sub"><span class="pulse"></span>${new Date().toLocaleString('es-BO',{timeZone:'America/La_Paz'})} · ${igs.length} iglesias</div>
+      </div>
+      <button onclick="render()" style="background:#1a1a3a;border:0;color:#fff;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer">⟳</button>
+    </div>
+
+    ${corrDia ? `<div style="background:linear-gradient(135deg,#1a1a4a,#13132a);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:24px">📅</div>
+      <div><div style="font-size:13px;color:#fff;font-weight:600">${corrDia.nome}</div>
+      <div style="font-size:11px;color:#888">Corriente de hoy</div></div>
+    </div>` : ''}
+
+    <div class="tab-bar">
+      <button class="tab active" data-t="resumen">📊 Resumen</button>
+      <button class="tab" data-t="iglesias">🏛️ Iglesias (${igs.length})</button>
+      <button class="tab" data-t="mensajes">💬 Mensajes</button>
+      <button class="tab" data-t="pendientes">⏳ Pendientes (${pendsPend.length})</button>
+    </div>
+
+    <div class="tab-content active" id="t-resumen">
+      <div class="grid">
+        <div class="card"><div class="icons">👥</div><div class="num">${cntP}</div><div class="label">Personas</div></div>
+        <div class="card"><div class="icons">🏛️</div><div class="num">${cntI}</div><div class="label">Iglesias</div></div>
+        <div class="card"><div class="icons">👤</div><div class="num">${cntPs}</div><div class="label">Pastores</div></div>
+        <div class="card"><div class="icons">💬</div><div class="num">${cntM}</div><div class="label">Mensajes</div></div>
+        <div class="card"><div class="icons">⏳</div><div class="num">${pendsPend.length}</div><div class="label">Pendientes</div></div>
+        <div class="card"><div class="icons">📞</div><div class="num">${cntCv}</div><div class="label">Conversas</div></div>
+      </div>
+
+      ${criticos.length ? `<div style="background:#1e0f0f;border:1px solid#3a1a1a;border-radius:10px;padding:10px 14px;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:600;color:#e74c3c">🔴 ${criticos.length} críticos/urgentes requieren atención</div>
+      </div>` : ''}
+
+      <div class="chart-section">
+        <h3>🏛️ Iglesias por ciudad</h3>
+        <canvas id="c1"></canvas>
+      </div>
+      <div class="chart-section">
+        <h3>⏳ Pendientes por clasificación</h3>
+        <canvas id="c2"></canvas>
+      </div>
+
+      <div class="list-section">
+        <h3>💬 Últimos mensajes</h3>
+        ${msgs.slice(0,8).map(m=>`
+          <div class="list-item">
+            <div><div class="nm">${(m.pessoa_id?.nome||m.remetente||'?').substring(0,25)}</div>
+            <div style="font-size:11px;color:#555">${(m.texto||'').substring(0,45)}</div></div>
+            <div class="dt">${(m.data_envio||'').substring(0,10)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="tab-content" id="t-iglesias">
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        ${Object.entries(cidadeMap).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`
+          <span class="badge badge-ok">${c} (${n})</span>
+        `).join('')}
+      </div>
+      ${igs.map(g=>`
+        <div style="background:#13132a;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-weight:600;color:#fff;font-size:13px">${g.nome}</div>
+          <div style="font-size:11px;color:#777">${g.cidade||''}</div></div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="tab-content" id="t-mensajes">
+      ${msgs.map(m=>`
+        <div style="background:#13132a;border-radius:8px;padding:10px 12px;margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;font-weight:600;color:#aaa">${m.pessoa_id?.nome||m.remetente||'?'}</span>
+            <span style="font-size:10px;color:#555">${(m.data_envio||'').substring(0,16)}</span>
+          </div>
+          <div style="font-size:13px;color:#ddd">${(m.texto||'').substring(0,120)}</div>
+          <div style="margin-top:4px"><span class="badge badge-pen">${m.classificacao||'sin_clasificar'}</span></div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="tab-content" id="t-pendientes">
+      ${pendsPend.length===0 ? '<p style="color:#666;text-align:center;padding:20px">✅ No hay respuestas pendientes</p>' :
+      pendsPend.slice(0,20).map(p=>`
+        <div style="background:#13132a;border-radius:8px;padding:10px 12px;margin-bottom:6px;border-left:3px solid ${p.classificacao==='crítico'?'#e74c3c':p.classificacao==='urgente'?'#e67e22':'#f1c40f'}">
+          <div style="font-size:12px;color:#888">${p.pessoa_id?.nome||'Anónimo'}</div>
+          <div style="font-size:13px;color:#ccc">${(p.msg_original||'').substring(0,80)}</div>
+          <div style="margin-top:4px"><span class="badge badge-${p.classificacao==='crítico'||p.classificacao==='urgente'?'crit':'pen'}">${p.classificacao||'normal'}</span></div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="text-align:center;padding:16px 0;font-size:10px;color:#444">
+      IURD Bolivia · ${new Date().toLocaleDateString('es-BO')} · Noah ⚡
+    </div>`;
+
+    app.innerHTML = html;
+
+    // Render charts (defer to let DOM render first)
+    setTimeout(() => renderCharts(cidLabels, cidCounts, plabels, pvals), 100);
+
+  } catch(e) {
+    app.innerHTML = `<div class="err-box">
+      <div style="font-size:40px;margin-bottom:12px">⚠️</div>
+      <div>Error al cargar los datos</div>
+      <div style="font-size:11px;color:#886;margin-top:8px">${e.message||'Intenta de nuevo'}</div>
+      <button onclick="render()">Reintentar</button>
+      <button onclick="{t='';localStorage.removeItem(TK);showLogin()}" style="background:transparent;color:#888;border:1px solid#333;margin-left:8px">Cambiar usuario</button>
+    </div>`;
+  }
+}
+
+function renderCharts(cidL, cidV, pL, pV) {
+  if(typeof Chart==='undefined') {
+    // Chart.js not loaded, show fallback
+    document.querySelectorAll('.chart-section canvas').forEach(c=>{
+      c.outerHTML = `<div style="padding:20px;text-align:center;color:#555;font-size:12px">
+        📊 Gráficos no disponibles en este dispositivo
+      </div>`;
+    });
+    return;
+  }
+
+  const colors = ['#3b5ceb','#2ecc71','#e74c3c','#f1c40f','#9b59b6','#e67e22','#3498db','#1abc9c'];
+
+  try {
+    new Chart(document.getElementById('c1'), {
+      type:'bar',
+      data:{labels:cidL,datasets:[{label:'Iglesias',data:cidV,backgroundColor:['#3b5ceb','#2ecc71','#e74c3c','#f1c40f','#9b59b6','#3498db','#e67e22'],borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{color:'#555'},grid:{color:'#222'}},x:{ticks:{color:'#777'}}}}
+    });
+  } catch(e) {}
+
+  try {
+    new Chart(document.getElementById('c2'), {
+      type:'doughnut',
+      data:{labels:pL,datasets:[{data:pV,backgroundColor:pL.map((_,i)=>colors[i%colors.length])}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#888',padding:6,boxWidth:12,font:{size:10}}}}}
+    });
+  } catch(e) {}
+}
+
+// Tab switches
+document.addEventListener('click', function(e) {
+  const tab = e.target.closest('.tab');
+  if(!tab) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  const el = document.getElementById('t-'+tab.dataset.t);
+  if(el) el.classList.add('active');
+});
+
+// Init
+if(t) render(); else showLogin();
+</script>
+</body>
+</html>

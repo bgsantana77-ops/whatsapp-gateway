@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>IURD Bolivia — Dashboard Executivo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a16;
+  --card:#13132a;
+  --card-hover:#1a1a3a;
+  --accent:#3b5ceb;
+  --accent-glow:rgba(59,92,235,0.15);
+  --text:#e8e8f0;
+  --text-dim:#7a7a9a;
+  --text-muted:#555;
+  --green:#22c55e;
+  --red:#ef4444;
+  --amber:#f59e0b;
+  --border:rgba(255,255,255,0.06);
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow:0 4px 24px rgba(0,0,0,0.3);
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+.scrollbar-hide::-webkit-scrollbar{display:none}
+.scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}
+
+/* ── Login Screen ── */
+#loginScreen{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+  background-image:radial-gradient(ellipse at 30% 20%,rgba(59,92,235,0.06) 0%,transparent 60%),
+                   radial-gradient(ellipse at 70% 80%,rgba(34,197,94,0.04) 0%,transparent 60%);
+}
+#loginScreen.hidden{display:none}
+.login-box{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:40px 32px;width:380px;max-width:92vw;
+  box-shadow:var(--shadow);
+}
+.login-box h1{font-size:22px;font-weight:700;margin-bottom:4px;letter-spacing:-0.3px}
+.login-box p{font-size:13px;color:var(--text-dim);margin-bottom:28px}
+.login-box label{display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.login-box input{
+  width:100%;padding:12px 14px;border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  color:var(--text);font-size:14px;outline:none;transition:border-color .2s;
+  margin-bottom:18px;
+}
+.login-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.login-box button{
+  width:100%;padding:13px;border:none;border-radius:var(--radius-sm);
+  background:var(--accent);color:#fff;font-size:15px;font-weight:600;
+  cursor:pointer;transition:all .2s;
+}
+.login-box button:hover{background:#4a6af0;transform:translateY(-1px)}
+.login-box button:disabled{opacity:0.5;cursor:not-allowed}
+.login-error{color:var(--red);font-size:13px;margin-top:12px;display:none}
+.login-spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px}
+
+/* ── Header ── */
+#mainScreen{display:none}
+#mainScreen.active{display:block}
+.header{
+  background:var(--card);border-bottom:1px solid var(--border);
+  padding:16px 24px;position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.header-left{display:flex;align-items:center;gap:14px}
+.header-left h1{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.header-badge{
+  font-size:10px;padding:2px 8px;border-radius:10px;
+  background:var(--accent);color:#fff;font-weight:600;text-transform:uppercase;
+}
+.header-right{display:flex;align-items:center;gap:10px}
+.header-right span{font-size:12px;color:var(--text-dim)}
+#btnRefresh{
+  padding:8px 16px;border:none;border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.06);color:var(--text);font-size:13px;
+  cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;
+}
+#btnRefresh:hover{background:rgba(255,255,255,0.1)}
+#btnRefresh.refreshing{pointer-events:none;opacity:0.6}
+#btnRefresh .icon{font-size:16px}
+#btnRefresh.refreshing .icon{animation:spin .6s linear infinite}
+#btnLogout{
+  padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:transparent;color:var(--text-dim);font-size:12px;
+  cursor:pointer;transition:all .2s;
+}
+#btnLogout:hover{color:var(--red);border-color:var(--red)}
+
+/* ── Main Content ── */
+.container{max-width:1280px;margin:0 auto;padding:20px 16px 60px}
+.section-title{font-size:16px;font-weight:600;margin-bottom:14px;color:var(--text-dim);letter-spacing:-0.2px}
+
+/* ── Metric Cards ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-bottom:28px}
+.metric-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 16px;
+  transition:all .2s;position:relative;overflow:hidden;
+}
+.metric-card:hover{background:var(--card-hover);transform:translateY(-2px);box-shadow:var(--shadow)}
+.metric-card .label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-dim);margin-bottom:6px}
+.metric-card .value{font-size:28px;font-weight:800;letter-spacing:-0.5px;line-height:1.1}
+.metric-card .sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+.metric-card .icon-emoji{font-size:20px;position:absolute;right:14px;top:14px;opacity:0.2}
+.metric-card.accent .value{color:var(--accent)}
+.metric-card.green .value{color:var(--green)}
+.metric-card.amber .value{color:var(--amber)}
+.metric-card.red .value{color:var(--red)}
+
+/* ── Charts Grid ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+@media(max-width:768px){.charts-grid{grid-template-columns:1fr}}
+.chart-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;min-height:320px;
+}
+.chart-card h3{font-size:13px;font-weight:600;color:var(--text-dim);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px}
+.chart-card .chart-wrapper{position:relative;height:260px;display:flex;align-items:center;justify-content:center}
+.chart-card .chart-wrapper canvas{max-width:100%;max-height:100%}
+.chart-fallback{color:var(--text-muted);font-size:13px;text-align:center;padding:40px 20px}
+
+/* ── Destaque Corrente ── */
+.destaque-card{
+  background:linear-gradient(135deg,var(--card) 0%,rgba(59,92,235,0.08) 100%);
+  border:1px solid rgba(59,92,235,0.2);
+  border-radius:var(--radius);padding:20px 24px;margin-bottom:28px;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
+.destaque-info{flex:1;min-width:200px}
+.destaque-info .tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:6px}
+.destaque-info h2{font-size:18px;font-weight:700;margin-bottom:4px}
+.destaque-info .meta{font-size:12px;color:var(--text-dim)}
+.destaque-info p{font-size:14px;color:var(--text);margin-top:8px;line-height:1.5}
+.destaque-badge{
+  flex-shrink:0;padding:6px 16px;border-radius:20px;
+  background:var(--accent);color:#fff;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.destaque-empty{color:var(--text-muted);font-size:14px;padding:12px 0}
+
+/* ── Alertas ── */
+.alertas-section{margin-bottom:28px}
+.alerta-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;border-radius:var(--radius-sm);
+  margin-bottom:8px;font-size:13px;
+}
+.alerta-item.critico{background:rgba(239,68,68,0.1);border-left:3px solid var(--red)}
+.alerta-item.urgente{background:rgba(245,158,11,0.1);border-left:3px solid var(--amber)}
+.alerta-item .alerta-icon{font-size:18px;flex-shrink:0}
+.alerta-item .alerta-text{flex:1}
+.alerta-item .alerta-text strong{display:block;font-size:12px;text-transform:uppercase;letter-spacing:0.5px}
+.alerta-item.critico .alerta-text strong{color:var(--red)}
+.alerta-item.urgente .alerta-text strong{color:var(--amber)}
+.alerta-item .alerta-count{font-weight:700;font-size:16px}
+.alerta-item.critico .alerta-count{color:var(--red)}
+.alerta-item.urgente .alerta-count{color:var(--amber)}
+
+/* ── Mensagens Recentes ── */
+.mensagens-section{margin-bottom:28px}
+.msg-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;
+}
+.msg-card h3{font-size:13px;font-weight:600;color:var(--text-dim);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px}
+.msg-list{display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto}
+.msg-list.scrollbar-hide::-webkit-scrollbar{display:none}
+.msg-item{
+  padding:10px 14px;border-radius:var(--radius-sm);
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);
+  display:flex;flex-direction:column;gap:4px;
+}
+.msg-item .msg-header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.msg-item .msg-pessoa{font-size:13px;font-weight:600}
+.msg-item .msg-data{font-size:11px;color:var(--text-muted)}
+.msg-item .msg-texto{font-size:13px;color:var(--text-dim);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.msg-item .msg-class{
+  font-size:10px;padding:1px 8px;border-radius:8px;font-weight:600;text-transform:uppercase;
+}
+.msg-class.oracao{background:rgba(59,92,235,0.15);color:var(--accent)}
+.msg-class.consulta{background:rgba(34,197,94,0.15);color:var(--green)}
+.msg-class.urgente{background:rgba(239,68,68,0.15);color:var(--red)}
+.msg-class.critico{background:rgba(239,68,68,0.2);color:var(--red)}
+.msg-class.alta{background:rgba(245,158,11,0.15);color:var(--amber)}
+.msg-class.admin{background:rgba(255,255,255,0.08);color:var(--text-dim)}
+.msg-empty{color:var(--text-muted);font-size:13px;padding:20px;text-align:center}
+
+/* ── Loading ── */
+.loading-dash{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:16px}
+.loading-dash .spinner{width:40px;height:40px;border:3px solid rgba(59,92,235,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.loading-dash p{font-size:14px;color:var(--text-dim)}
+.hidden{display:none!important}
+
+/* ── Animations ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.metric-card,.chart-card,.destaque-card,.msg-item,.alerta-item{animation:fadeIn .3s ease-out}
+
+/* ── Toast System ── */
+.toast-container{position:fixed;top:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px;max-width:340px}
+.toast{
+  padding:12px 16px;border-radius:var(--radius-sm);
+  color:#fff;font-size:13px;font-weight:500;
+  animation:fadeIn .3s ease-out;box-shadow:var(--shadow);
+}
+.toast.error{background:var(--red)}
+.toast.success{background:var(--green)}
+.toast.info{background:var(--accent)}
+
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN SCREEN ═══ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>IURD Bolívia</h1>
+    <p>Dashboard Executivo — Entre com suas credenciais</p>
+    <form id="loginForm" autocomplete="off">
+      <label>Email</label>
+      <input type="email" id="loginEmail" value="paginaweb.bolivia@gmail.com" placeholder="seu@email.com" required>
+      <label>Senha</label>
+      <input type="password" id="loginPassword" placeholder="••••••" required>
+      <button type="submit" id="loginBtn">Entrar</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MAIN SCREEN ═══ -->
+<div id="mainScreen">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>📊 Executivo</h1>
+      <span class="header-badge">IURD Bolívia</span>
+    </div>
+    <div class="header-right">
+      <span id="lastUpdate"></span>
+      <button id="btnRefresh"><span class="icon">⟳</span> Atualizar</button>
+      <button id="btnLogout">Sair</button>
+    </div>
+  </div>
+
+  <!-- Container -->
+  <div class="container">
+
+    <!-- Loading -->
+    <div class="loading-dash" id="loadingDash">
+      <div class="spinner"></div>
+      <p>Carregando dados do Directus...</p>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashContent" class="hidden">
+
+      <!-- 1. Metric Cards -->
+      <div class="metrics-grid" id="metricsGrid"></div>
+
+      <!-- 2. Alertas -->
+      <div class="alertas-section hidden" id="alertasSection">
+        <div class="section-title">🚨 Alertas</div>
+        <div id="alertasList"></div>
+      </div>
+
+      <!-- 3. Corrente do Destaque -->
+      <div class="section-title">🔥 Corrente do Dia</div>
+      <div class="destaque-card" id="destaqueCorrente">
+        <div class="destaque-info" id="destaqueInfo">
+          <div class="tag">✨ Destaque</div>
+          <h2 id="destaqueNome">—</h2>
+          <div class="meta" id="destaqueMeta"></div>
+          <p id="destaqueTexto"></p>
+        </div>
+        <div class="destaque-badge" id="destaqueBadge">📅 Hoje</div>
+      </div>
+
+      <!-- 4. Charts -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>🏛️ Igrejas por Cidade</h3>
+          <div class="chart-wrapper"><canvas id="chartCidades"></canvas></div>
+          <div class="chart-fallback hidden" id="fallbackCidades">Gráfico não disponível</div>
+        </div>
+        <div class="chart-card">
+          <h3>💬 Mensagens por Classificação</h3>
+          <div class="chart-wrapper"><canvas id="chartClassificacao"></canvas></div>
+          <div class="chart-fallback hidden" id="fallbackClassificacao">Gráfico não disponível</div>
+        </div>
+        <div class="chart-card">
+          <h3>⏳ Pendentes por Classificação</h3>
+          <div class="chart-wrapper"><canvas id="chartPendentes"></canvas></div>
+          <div class="chart-fallback hidden" id="fallbackPendentes">Gráfico não disponível</div>
+        </div>
+        <div class="chart-card">
+          <h3>📋 Mensagens Recentes</h3>
+          <div class="msg-list scrollbar-hide" id="mensagensRecentesList">
+            <div class="msg-empty">Carregando...</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /dashContent -->
+  </div><!-- /container -->
+</div><!-- /mainScreen -->
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/chart.umd.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════ */
+const COLLECTIONS = ['pessoas','igrejas','pastores','mensagens','respostas_pendentes','conversas','correntes'];
+
+/* ═══════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════ */
+let chartCidades = null;
+let chartClassificacao = null;
+let chartPendentes = null;
+
+/* ═══════════════════════════════════════════
+   DOM REFS
+   ═══════════════════════════════════════════ */
+const loginScreen = document.getElementById('loginScreen');
+const mainScreen = document.getElementById('mainScreen');
+const loginForm = document.getElementById('loginForm');
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const loginBtn = document.getElementById('loginBtn');
+const loginError = document.getElementById('loginError');
+const dashContent = document.getElementById('dashContent');
+const loadingDash = document.getElementById('loadingDash');
+const metricsGrid = document.getElementById('metricsGrid');
+const alertasSection = document.getElementById('alertasSection');
+const alertasList = document.getElementById('alertasList');
+const destaqueNome = document.getElementById('destaqueNome');
+const destaqueMeta = document.getElementById('destaqueMeta');
+const destaqueTexto = document.getElementById('destaqueTexto');
+const lastUpdate = document.getElementById('lastUpdate');
+const btnRefresh = document.getElementById('btnRefresh');
+const btnLogout = document.getElementById('btnLogout');
+const mensagensRecentesList = document.getElementById('mensagensRecentesList');
+const toastContainer = document.getElementById('toastContainer');
+
+/* ═══════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════ */
+function toast(msg, type='info'){
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  toastContainer.appendChild(el);
+  setTimeout(()=>{ el.remove() }, 3500);
+}
+
+function formatDate(d){
+  if(!d) return '—';
+  try{
+    const dt = new Date(d);
+    if(isNaN(dt.getTime())) return d;
+    return dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return d }
+}
+
+async function apiFetch(url){
+  const token = localStorage.getItem('directus_token');
+  const headers = {'Content-Type':'application/json'};
+  if(token) headers['Authorization'] = 'Bearer ' + token;
+  const resp = await fetch(url, {headers});
+  if(!resp.ok) throw new Error('HTTP ' + resp.status + ': ' + await resp.text());
+  return resp.json();
+}
+
+async function apiPost(url, body){
+  const resp = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  if(!resp.ok) throw new Error('HTTP ' + resp.status + ': ' + await resp.text());
+  return resp.json();
+}
+
+/* ═══════════════════════════════════════════
+   LOGIN
+   ═══════════════════════════════════════════ */
+loginForm.addEventListener('submit', async function(e){
+  e.preventDefault();
+  loginError.style.display = 'none';
+  loginBtn.disabled = true;
+  loginBtn.innerHTML = '<span class="login-spinner"></span> Entrando...';
+
+  try{
+    const result = await apiPost('/directus/auth/login', {
+      email: loginEmail.value.trim(),
+      password: loginPassword.value
+    });
+    const token = result.data.access_token;
+    localStorage.setItem('directus_token', token);
+    localStorage.setItem('directus_email', loginEmail.value.trim());
+    showDashboard();
+  }catch(err){
+    loginError.textContent = 'Erro ao autenticar: ' + (err.message || 'credenciais inválidas');
+    loginError.style.display = 'block';
+  }finally{
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Entrar';
+  }
+});
+
+btnLogout.addEventListener('click', function(){
+  localStorage.removeItem('directus_token');
+  localStorage.removeItem('directus_email');
+  loginScreen.classList.remove('hidden');
+  mainScreen.classList.remove('active');
+  mainScreen.style.display = 'none';
+});
+
+/* ═══════════════════════════════════════════
+   SHOW DASHBOARD
+   ═══════════════════════════════════════════ */
+function showDashboard(){
+  loginScreen.classList.add('hidden');
+  mainScreen.style.display = 'block';
+  mainScreen.classList.add('active');
+  loadDashboard();
+}
+
+btnRefresh.addEventListener('click', function(){
+  this.classList.add('refreshing');
+  loadDashboard().finally(()=>{
+    btnRefresh.classList.remove('refreshing');
+  });
+});
+
+/* ═══════════════════════════════════════════
+   LOAD DASHBOARD
+   ═══════════════════════════════════════════ */
+async function loadDashboard(){
+  loadingDash.classList.remove('hidden');
+  dashContent.classList.add('hidden');
+  alertasSection.classList.add('hidden');
+
+  try{
+    const token = localStorage.getItem('directus_token');
+    if(!token) throw new Error('Token não encontrado');
+
+    const results = await Promise.allSettled([
+      apiFetch('/directus/items/pessoas?aggregate[count]=*&limit=1'),
+      apiFetch('/directus/items/igrejas?aggregate[count]=*&limit=1'),
+      apiFetch('/directus/items/pastores?aggregate[count]=*&limit=1'),
+      apiFetch('/directus/items/mensagens?aggregate[count]=*&limit=1'),
+      apiFetch('/directus/items/respostas_pendentes?aggregate[count]=*&limit=1'),
+      apiFetch('/directus/items/conversas?aggregate[count]=*&limit=1'),
+      // Igrejas por cidade
+      apiFetch('/directus/items/igrejas?limit=200&fields=id,nome,cidade&sort=nome'),
+      // Mensagens recentes com classificacao
+      apiFetch("/directus/items/mensagens?limit=10&fields=id,texto,remetente,data_envio,classificacao,pessoa_id.nome&sort=-data_envio"),
+      // Pendentes com classificacao
+      apiFetch('/directus/items/respostas_pendentes?limit=100&fields=id,classificacao,status,pessoa_id,pessoa_id.nome,resposta_ia,data_criacao'),
+      // Correntes
+      apiFetch('/directus/items/correntes?limit=10&fields=id,nome,descricao,data_inicio,data_fim,status,objetivo,lider&sort=-data_inicio'),
+    ]);
+
+    const extractCount = (r, def=0) => {
+      if(r.status === 'fulfilled' && r.value.data && r.value.data.length > 0){
+        return r.value.data[0].count || def;
+      }
+      return def;
+    };
+
+    const counts = [
+      {label:'Pessoas',       value:extractCount(results[0]), icon:'👤', cls:'accent'},
+      {label:'Igrejas',       value:extractCount(results[1]), icon:'🏛️', cls:'green'},
+      {label:'Pastores',      value:extractCount(results[2]), icon:'🙏', cls:'accent'},
+      {label:'Mensagens',     value:extractCount(results[3]), icon:'💬', cls:'green'},
+      {label:'Pendentes',     value:extractCount(results[4]), icon:'⏳', cls:'amber'},
+      {label:'Conversas',     value:extractCount(results[5]), icon:'💭', cls:'accent'},
+    ];
+
+    renderMetrics(counts);
+
+    // — Igrejas por cidade (result[6])
+    if(results[6].status === 'fulfilled'){
+      const igrejas = results[6].value.data || [];
+      renderChartCidades(igrejas);
+    } else {
+      showFallback('chartCidades','fallbackCidades');
+    }
+
+    // — Mensagens recentes (result[7])
+    if(results[7].status === 'fulfilled'){
+      const msgs = results[7].value.data || [];
+      renderMensagensRecentes(msgs);
+    } else {
+      mensagensRecentesList.innerHTML = '<div class="msg-empty">Erro ao carregar mensagens</div>';
+    }
+
+    // — Pendentes classificacao (result[8])
+    if(results[8].status === 'fulfilled'){
+      const pendentes = results[8].value.data || [];
+      renderChartPendentes(pendentes);
+      renderAlertas(pendentes);
+    } else {
+      showFallback('chartPendentes','fallbackPendentes');
+    }
+
+    // — Correntes (result[9])
+    if(results[9].status === 'fulfilled'){
+      const correntes = results[9].value.data || [];
+      renderDestaqueCorrente(correntes);
+    } else {
+      destaqueNome.textContent = 'Sem dados';
+      destaqueTexto.textContent = 'Não foi possível carregar a corrente do dia.';
+    }
+
+    // — Mensagens classificacao (from mensagens recentes)
+    if(results[7].status === 'fulfilled'){
+      const msgs = results[7].value.data || [];
+      renderChartClassificacao(msgs);
+    } else {
+      showFallback('chartClassificacao','fallbackClassificacao');
+    }
+
+    const now = new Date();
+    lastUpdate.textContent = 'Última atualização: ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    toast('Dashboard atualizado ✅','success');
+
+  }catch(err){
+    toast('Erro ao carregar dashboard: ' + err.message, 'error');
+    console.error(err);
+  }finally{
+    loadingDash.classList.add('hidden');
+    dashContent.classList.remove('hidden');
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RENDER METRICS
+   ═══════════════════════════════════════════ */
+function renderMetrics(items){
+  metricsGrid.innerHTML = items.map(m => `
+    <div class="metric-card ${m.cls}">
+      <div class="icon-emoji">${m.icon}</div>
+      <div class="label">${m.label}</div>
+      <div class="value">${m.value}</div>
+      <div class="sub">total registrado</div>
+    </div>
+  `).join('');
+}
+
+/* ═══════════════════════════════════════════
+   RENDER CHARTS
+   ═══════════════════════════════════════════ */
+
+// — Chart.js: Igrejas por Cidade (bar)
+function renderChartCidades(igrejas){
+  const cidades = {};
+  igrejas.forEach(i => {
+    const cid = (i.cidade || 'Sem cidade').trim();
+    cidades[cid] = (cidades[cid] || 0) + 1;
+  });
+  const labels = Object.keys(cidades).sort((a,b) => cidades[b] - cidades[a]).slice(0,15);
+  const data = labels.map(l => cidades[l]);
+
+  const ctx = document.getElementById('chartCidades').getContext('2d');
+  if(chartCidades) chartCidades.destroy();
+  if(typeof Chart === 'undefined'){
+    showFallback('chartCidades','fallbackCidades');
+    return;
+  }
+  document.getElementById('fallbackCidades').classList.add('hidden');
+  document.getElementById('chartCidades').classList.remove('hidden');
+
+  chartCidades = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:'Igrejas',
+        data,
+        backgroundColor:'rgba(59,92,235,0.7)',
+        borderColor:'#3b5ceb',
+        borderWidth:1,
+        borderRadius:4,
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{backgroundColor:'#1a1a3a',titleColor:'#e8e8f0',bodyColor:'#7a7a9a',cornerRadius:8}
+      },
+      scales:{
+        x:{ticks:{color:'#7a7a9a',maxRotation:45},grid:{display:false}},
+        y:{ticks:{color:'#7a7a9a',stepSize:1},grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+}
+
+// — Chart.js: Mensagens por Classificação (pie)
+function renderChartClassificacao(mensagens){
+  const classificacoes = {};
+  mensagens.forEach(m => {
+    const cls = (m.classificacao || 'outro').toLowerCase();
+    classificacoes[cls] = (classificacoes[cls] || 0) + 1;
+  });
+  const labels = Object.keys(classificacoes);
+  const data = labels.map(l => classificacoes[l]);
+  const colors = ['#3b5ceb','#22c55e','#f59e0b','#ef4444','#a855f7','#6366f1','#ec4899','#64748b'];
+
+  const ctx = document.getElementById('chartClassificacao').getContext('2d');
+  if(chartClassificacao) chartClassificacao.destroy();
+  if(typeof Chart === 'undefined'){
+    showFallback('chartClassificacao','fallbackClassificacao');
+    return;
+  }
+  document.getElementById('fallbackClassificacao').classList.add('hidden');
+  document.getElementById('chartClassificacao').classList.remove('hidden');
+
+  chartClassificacao = new Chart(ctx, {
+    type:'pie',
+    data:{
+      labels,
+      datasets:[{
+        data,
+        backgroundColor:colors.slice(0,labels.length),
+        borderWidth:2,
+        borderColor:'#13132a',
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{
+          position:'bottom',
+          labels:{color:'#7a7a9a',padding:12,usePointStyle:true,pointStyle:'circle',font:{size:11}}
+        },
+        tooltip:{
+          backgroundColor:'#1a1a3a',
+          titleColor:'#e8e8f0',
+          bodyColor:'#7a7a9a',
+          cornerRadius:8,
+          callbacks:{
+            label:function(ctx){
+              const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+              const pct = ((ctx.parsed / total)*100).toFixed(1);
+              return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// — Chart.js: Pendentes por Classificação (doughnut)
+function renderChartPendentes(pendentes){
+  const classificacoes = {};
+  pendentes.forEach(p => {
+    const cls = (p.classificacao || 'outro').toLowerCase();
+    classificacoes[cls] = (classificacoes[cls] || 0) + 1;
+  });
+  const labels = Object.keys(classificacoes);
+  const data = labels.map(l => classificacoes[l]);
+  const colors = ['#f59e0b','#ef4444','#3b5ceb','#22c55e','#a855f7','#64748b'];
+
+  const ctx = document.getElementById('chartPendentes').getContext('2d');
+  if(chartPendentes) chartPendentes.destroy();
+  if(typeof Chart === 'undefined'){
+    showFallback('chartPendentes','fallbackPendentes');
+    return;
+  }
+  document.getElementById('fallbackPendentes').classList.add('hidden');
+  document.getElementById('chartPendentes').classList.remove('hidden');
+
+  chartPendentes = new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      labels,
+      datasets:[{
+        data,
+        backgroundColor:colors.slice(0,labels.length),
+        borderWidth:2,
+        borderColor:'#13132a',
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      cutout:'65%',
+      plugins:{
+        legend:{
+          position:'bottom',
+          labels:{color:'#7a7a9a',padding:12,usePointStyle:true,pointStyle:'circle',font:{size:11}}
+        },
+        tooltip:{
+          backgroundColor:'#1a1a3a',
+          titleColor:'#e8e8f0',
+          bodyColor:'#7a7a9a',
+          cornerRadius:8,
+          callbacks:{
+            label:function(ctx){
+              const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+              const pct = ((ctx.parsed / total)*100).toFixed(1);
+              return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function showFallback(canvasId, fallbackId){
+  const canvas = document.getElementById(canvasId);
+  if(canvas) canvas.classList.add('hidden');
+  const fb = document.getElementById(fallbackId);
+  if(fb) fb.classList.remove('hidden');
+}
+
+/* ═══════════════════════════════════════════
+   RENDER ALERTAS
+   ═══════════════════════════════════════════ */
+function renderAlertas(pendentes){
+  let criticos = 0, urgentes = 0;
+  pendentes.forEach(p => {
+    const cls = (p.classificacao || '').toLowerCase();
+    if(cls === 'critico') criticos++;
+    else if(cls === 'urgente') urgentes++;
+  });
+
+  alertasList.innerHTML = '';
+  if(criticos === 0 && urgentes === 0){
+    alertasSection.classList.add('hidden');
+    return;
+  }
+
+  if(criticos > 0){
+    alertasList.innerHTML += `
+      <div class="alerta-item critico">
+        <span class="alerta-icon">🔴</span>
+        <div class="alerta-text">
+          <strong>Crítico</strong>
+          <span>${criticos} ${criticos === 1 ? 'pendente necessita' : 'pendentes necessitam'} atenção imediata</span>
+        </div>
+        <span class="alerta-count">${criticos}</span>
+      </div>`;
+  }
+
+  if(urgentes > 0){
+    alertasList.innerHTML += `
+      <div class="alerta-item urgente">
+        <span class="alerta-icon">🟡</span>
+        <div class="alerta-text">
+          <strong>Urgente</strong>
+          <span>${urgentes} ${urgentes === 1 ? 'pendente requer' : 'pendentes requerem'} atenção</span>
+        </div>
+        <span class="alerta-count">${urgentes}</span>
+      </div>`;
+  }
+
+  alertasSection.classList.remove('hidden');
+}
+
+/* ═══════════════════════════════════════════
+   RENDER DESTAQUE CORRENTE
+   ═══════════════════════════════════════════ */
+function renderDestaqueCorrente(correntes){
+  // Find the current/active/destaque corrente
+  const ativa = correntes.find(c =>
+    c.status === 'ativa' || c.status === 'active' || c.status === 'destaque'
+  ) || correntes[0];
+
+  if(!ativa){
+    destaqueNome.textContent = 'Nenhuma corrente ativa no momento';
+    destaqueMeta.textContent = '';
+    destaqueTexto.textContent = 'As correntes aparecerão aqui quando forem criadas.';
+    document.getElementById('destaqueBadge').textContent = '📭 Sem corrente';
+    return;
+  }
+
+  destaqueNome.textContent = ativa.nome || 'Corrente sem nome';
+  destaqueMeta.textContent = [
+    ativa.lider ? 'Líder: ' + ativa.lider : '',
+    ativa.data_inicio ? 'Início: ' + formatDate(ativa.data_inicio) : '',
+    ativa.data_fim ? 'Fim: ' + formatDate(ativa.data_fim) : '',
+  ].filter(Boolean).join(' · ');
+  destaqueTexto.textContent = ativa.descricao || ativa.objetivo || 'Sem descrição disponível.';
+  document.getElementById('destaqueBadge').textContent = ativa.status === 'ativa' ? '🔥 Ativa' : '📌 ' + (ativa.status || 'Corrente');
+}
+
+/* ═══════════════════════════════════════════
+   RENDER MENSAGENS RECENTES
+   ═══════════════════════════════════════════ */
+function renderMensagensRecentes(mensagens){
+  if(!mensagens || mensagens.length === 0){
+    mensagensRecentesList.innerHTML = '<div class="msg-empty">Nenhuma mensagem recente</div>';
+    return;
+  }
+
+  mensagensRecentesList.innerHTML = mensagens.map(m => {
+    const pessoaNome = m.pessoa_id && typeof m.pessoa_id === 'object' ? (m.pessoa_id.nome || '—') : '—';
+    const cls = (m.classificacao || 'outro').toLowerCase();
+    return `
+      <div class="msg-item">
+        <div class="msg-header">
+          <span class="msg-pessoa">${pessoaNome}</span>
+          <span class="msg-class ${cls}">${m.classificacao || 'outro'}</span>
+        </div>
+        <div class="msg-texto">${escapeHtml(m.texto || '')}</div>
+        <div class="msg-header" style="margin-top:2px">
+          <span class="msg-data">${formatDate(m.data_envio)}</span>
+          <span class="msg-data">${m.remetente || '—'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHtml(text){
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/* ═══════════════════════════════════════════
+   AUTO-LOGIN CHECK
+   ═══════════════════════════════════════════ */
+(function init(){
+  const token = localStorage.getItem('directus_token');
+  if(token){
+    showDashboard();
+  } else {
+    loginScreen.classList.remove('hidden');
+  }
+})();
+
+})();
+</script>
+</body>
+</html>
