@@ -1,0 +1,18 @@
+[Unit]
+Description=Chat API — Ponte entre Directus e WAHA para o Chat Interface
+After=network.target directus.service waha.service
+
+[Service]
+Type=simple
+User=catedral
+WorkingDirectory=/home/catedral/whatsapp-gateway
+ExecStart=/usr/bin/python3 /home/catedral/whatsapp-gateway/chat-api.py
+Restart=always
+RestartSec=5
+Environment=DIRECTUS_URL=http://localhost:8055
+Environment=DIRECTUS_EMAIL=paginaweb.bolivia@gmail.com
+Environment=DIRECTUS_PASSWORD=Uni2026!
+Environment=API_PORT=3098
+
+[Install]
+WantedBy=multi-user.target

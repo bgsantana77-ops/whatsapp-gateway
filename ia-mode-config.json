@@ -1,0 +1,15 @@
+{
+  "modo_geral": "rascunho",
+  "label_geral": "Treino (15 dias) — Revisão humana necessária",
+  "classificacoes": {
+    "oracao": "auto",
+    "duvida": "rascunho",
+    "testemunho": "rascunho",
+    "agendamento": "rascunho",
+    "urgente": "rascunho",
+    "geral": "rascunho",
+    "faq": "auto",
+    "consentimento": "auto"
+  },
+  "atualizado_em": "2026-06-01T08:08:23.077Z"
+}

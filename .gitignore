@@ -1,0 +1,24 @@
+# Dependências
+node_modules/
+__pycache__/
+*.pyc
+
+# Sessão WAHA
+session/
+*.lid.json
+
+# QRs e screenshots
+waha-qr*.png
+waha-qr*.jpg
+waha-screenshot.png
+
+# Backups
+*.bak.*
+*.bak
+
+# Config local
+.env
+.env.*
+
+# Logs
+*.log

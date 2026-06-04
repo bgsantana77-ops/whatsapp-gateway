@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>IURD Bolívia — Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --iurd-red: #db0b16;
+  --iurd-dark: #12232e;
+  --iurd-gold: #c9a84c;
+  --white: #ffffff;
+  --light: #f0f2f5;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--iurd-dark);
+  color: var(--white);
+  overflow: hidden;
+  width: 1920px;
+  height: 1080px;
+}
+
+.top-bar {
+  background: var(--iurd-red);
+  padding: 12px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+}
+
+.top-bar h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.top-bar .subtitle {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.clock {
+  font-size: 22px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  grid-template-rows: 1fr auto;
+  height: calc(1080px - 60px);
+  gap: 0;
+}
+
+#map {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+.side-panel {
+  background: rgba(18, 35, 46, 0.95);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  border-left: 2px solid var(--iurd-red);
+}
+
+.corrente-card {
+  background: linear-gradient(135deg, var(--iurd-red), #8b0000);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.corrente-card .dia {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.8;
+}
+
+.corrente-card .nome {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 8px 0;
+}
+
+.corrente-card .versiculo {
+  font-size: 13px;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.corrente-card .horarios {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.corrente-card .horarios span {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin: 2px;
+  font-weight: 600;
+}
+
+.stat-box {
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.stat-box .label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.6;
+}
+
+.stat-box .value {
+  font-size: 28px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.stat-box .value small { font-size: 14px; font-weight: 400; opacity: 0.6; }
+
+.igrejas-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.igreja-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 6px;
+}
+
+.igreja-item:hover {
+  background: rgba(219, 11, 22, 0.2);
+}
+
+.igreja-item .nome { font-weight: 600; }
+.igreja-item .cidade { opacity: 0.6; font-size: 12px; }
+.igreja-item .status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--iurd-dark) !important;
+  color: white !important;
+  border-left: 4px solid var(--iurd-red);
+  border-radius: 8px !important;
+}
+
+.leaflet-popup-tip { background: var(--iurd-dark) !important; }
+
+.leaflet-popup-content {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
+.popup-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.popup-addr { opacity: 0.7; font-size: 12px; }
+.popup-phone { color: var(--iurd-gold); font-size: 13px; margin-top: 4px; }
+
+.consentimento-bar {
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.consentimento-bar .pct { color: #4ade80; font-weight: 700; }
+
+.bottom-bar {
+  background: rgba(0,0,0,0.3);
+  padding: 10px 30px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.6;
+  grid-column: 1 / 3;
+}
+
+/* Ícone personalizado IURD */
+.iurd-icon {
+  background: var(--iurd-red);
+  border: 2px solid white;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <h1>🙏 IURD BOLÍVIA</h1>
+    <div class="subtitle">Iglesia Universal del Reino de Dios</div>
+  </div>
+  <div class="clock" id="clock"></div>
+</div>
+
+<div class="main-grid">
+  <div id="map"></div>
+
+  <div class="side-panel">
+    <div class="corrente-card" id="corrente-card">
+      <div class="dia" id="corrente-dia">CARGANDO...</div>
+      <div class="nome" id="corrente-nome">—</div>
+      <div class="versiculo" id="corrente-verso">—</div>
+      <div class="horarios" id="corrente-horarios"></div>
+    </div>
+
+    <div class="stat-box">
+      <div class="label">🏛️ Iglesias</div>
+      <div class="value"><span id="total-igrejas">38</span> <small>activas</small></div>
+    </div>
+
+    <div class="stat-box">
+      <div class="label">📱 Atendimentos hoy</div>
+      <div class="value"><span id="atendimentos-hoje">0</span> <small>mensajes</small></div>
+    </div>
+
+    <div class="consentimento-bar">
+      <span>✅ Consentimiento</span>
+      <span class="pct" id="consentimento-pct">0%</span>
+    </div>
+
+    <div style="font-size:13px;font-weight:600;margin-top:4px;">📍 Iglesias</div>
+    <div class="igrejas-list" id="igrejas-list"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <span>🔄 Actualizando cada 10s</span>
+    <span id="ultima-atualizacao">—</span>
+    <span>🔴 IURD 360 · NUC · Noah ⚡</span>
+  </div>
+</div>
+
+<script>
+const IGREJAS = [
+  {nome:"Catedral de la Familia",cidade:"Santa Cruz",endereco:"C/ Junín, entre Av. Cañoto y Sara",tel:"+591 78440353",lat:-17.7833,lng:-63.1822},
+  {nome:"Plan 3000",cidade:"Santa Cruz",endereco:"Av. El Mechero, esq. calle 4",tel:"+591 62165236",lat:-17.8100,lng:-63.1400},
+  {nome:"Los Lotes",cidade:"Santa Cruz",endereco:"Av. Nuevo Palmar # 6765",tel:"+591 62164642",lat:-17.7950,lng:-63.2050},
+  {nome:"El Quior",cidade:"Santa Cruz",endereco:"Av. El Quior, esq. Calle 3 Sur",tel:"+591 62157236",lat:-17.8050,lng:-63.1600},
+  {nome:"La Colorada",cidade:"Santa Cruz",endereco:"Av. La Colorada Uv. 106",tel:"+591 62166230",lat:-17.7880,lng:-63.1250},
+  {nome:"Villa 1.° de Mayo",cidade:"Santa Cruz",endereco:"Calle 3 Oeste",tel:"+591 62164792",lat:-17.8200,lng:-63.1750},
+  {nome:"Pampa de la Isla",cidade:"Santa Cruz",endereco:"Av. Virgen de Luján",tel:"+591 62164314",lat:-17.7700,lng:-63.2100},
+  {nome:"Los Chacos",cidade:"Santa Cruz",endereco:"Av. Principal Los Chacos",tel:"+591 62163664",lat:-17.7980,lng:-63.1500},
+  {nome:"Cotoca",cidade:"Cotoca",endereco:"Calle Ayacucho",tel:"+591 62166803",lat:-17.7480,lng:-62.9950},
+  {nome:"Villa Busch",cidade:"Santa Cruz",endereco:"Av. Principal",tel:"+591 62163971",lat:-17.8150,lng:-63.1900},
+  {nome:"Km 6 La Guardia",cidade:"Santa Cruz",endereco:"Km6 Doble vía La Guardia",tel:"+591 62162866",lat:-17.8350,lng:-63.2200},
+  {nome:"Pailón",cidade:"Santa Cruz",endereco:"C/ Pailón, frente al mercado",tel:"+591 62164303",lat:-17.7700,lng:-63.1000},
+  {nome:"El Bajío",cidade:"Santa Cruz",endereco:"Av. Moscú",tel:"+591 62158471",lat:-17.8080,lng:-63.1700},
+  {nome:"La República",cidade:"Santa Cruz",endereco:"Av. La República # 1875",tel:"+591 62163752",lat:-17.7850,lng:-63.1950},
+  {nome:"Satélite Norte",cidade:"Santa Cruz",endereco:"Av. Satélite Norte",tel:"+591 62164056",lat:-17.7600,lng:-63.1650},
+  {nome:"Montero",cidade:"Montero",endereco:"Calle Isaías Parada",tel:"+591 62163116",lat:-17.3400,lng:-63.2500},
+  {nome:"Warnes",cidade:"Warnes",endereco:"Av. 25 de Mayo # 238",tel:"+591 62163653",lat:-17.5100,lng:-63.1700},
+  {nome:"Camiri",cidade:"Camiri",endereco:"Calle TCNL. Sánchez",tel:"+591 62164633",lat:-20.0400,lng:-63.5200},
+  {nome:"Cochabamba",cidade:"Cochabamba",endereco:"Calle Teniente Arévalo # 143",tel:"+591 62164574",lat:-17.3930,lng:-66.1570},
+  {nome:"Quillacollo",cidade:"Quillacollo",endereco:"Av. Fructuoso Mercado # 333",tel:"+591 62164502",lat:-17.4000,lng:-66.2800},
+  {nome:"Cliza",cidade:"Cliza",endereco:"Calle Darío Alvizuri",tel:"+591 62156809",lat:-17.5900,lng:-65.9300},
+  {nome:"Sacaba (Padilla)",cidade:"Sacaba",endereco:"Calle Padilla",tel:"+591 62165155",lat:-17.3950,lng:-66.0400},
+  {nome:"Sacaba (Reducto)",cidade:"Sacaba",endereco:"Av. Reducto",tel:"+591 62164791",lat:-17.3880,lng:-66.0300},
+  {nome:"Sacaba (Panamericana)",cidade:"Sacaba",endereco:"Av. Panamericana",tel:"+591 62194995",lat:-17.3820,lng:-66.0200},
+  {nome:"La Paz",cidade:"La Paz",endereco:"Calle Ayacucho # 316",tel:"+591 62164810",lat:-16.5000,lng:-68.1500},
+  {nome:"El Alto (Ceja)",cidade:"El Alto",endereco:"Calle Raúl Salmón 93",tel:"+591 62165109",lat:-16.5000,lng:-68.2000},
+  {nome:"El Alto (6 Junio)",cidade:"El Alto",endereco:"Av. 6 de Junio",tel:"+591 62165527",lat:-16.5100,lng:-68.1900},
+  {nome:"Trinidad",cidade:"Trinidad",endereco:"Calle La Paz, esq. 18 nov.",tel:"+591 62166278",lat:-14.8300,lng:-64.9000},
+  {nome:"Riberalta",cidade:"Riberalta",endereco:"Av. Beni Mamoré",tel:"+591 62162964",lat:-11.0000,lng:-66.0700},
+  {nome:"Guayaramerín",cidade:"Guayaramerín",endereco:"Av. Oruro",tel:"+591 62165731",lat:-10.8200,lng:-65.3500},
+  {nome:"Tarija",cidade:"Tarija",endereco:"Calle Virginio Lema # 126",tel:"+591 62162370",lat:-21.5300,lng:-64.7300},
+  {nome:"Yacuiba (Crevaux)",cidade:"Yacuiba",endereco:"Calle Crevaux",tel:"+591 62164608",lat:-22.0200,lng:-63.6700},
+  {nome:"Yacuiba (Manchego)",cidade:"Yacuiba",endereco:"Calle Capitán Manchego",tel:"+591 62163099",lat:-22.0300,lng:-63.6800},
+  {nome:"Oruro",cidade:"Oruro",endereco:"Calle 06 de Octubre",tel:"+591 62165530",lat:-17.9700,lng:-67.1100},
+  {nome:"Sucre",cidade:"Sucre",endereco:"Calle España # 125",tel:"+591 62166084",lat:-19.0300,lng:-65.2600},
+  {nome:"Cobija",cidade:"Cobija",endereco:"Av. Internacional",tel:"+591 62162071",lat:-11.0300,lng:-68.7600},
+  {nome:"Potosí",cidade:"Potosí",endereco:"Av. El Maestro N.° 315",tel:"+591 62165454",lat:-19.5800,lng:-65.7500},
+  {nome:"Tupiza",cidade:"Tupiza",endereco:"Calle Chorolque",tel:"+591 62164764",lat:-21.4400,lng:-65.7100}
+];
+
+const CORRENTES = [
+  {dia:0,nome:"Encuentro con Dios",tema:"Restauración Familiar",verso:"Atos 2:1-4 — E todos foram cheios do Espírito Santo",horarios:["06:30","09:30","12:00","15:00","18:00"]},
+  {dia:1,nome:"Congreso para el Progreso",tema:"Prosperidad con Dios",verso:"Marcos 11:24 — Tudo o que pedirdes, crede que recebestes",horarios:["06:30","10:00","16:00","19:30"]},
+  {dia:2,nome:"Reunión de Sanidad",tema:"Sanidad Divina",verso:"João 8:36 — Se o Filho vos libertar, sereis verdadeiramente livres",horarios:["07:00","10:00","16:00","19:30"]},
+  {dia:3,nome:"Hijos de Dios",tema:"Fortalecimiento Espiritual",verso:"Atos 1:8 — Recebereis poder ao descer sobre vós o Espírito Santo",horarios:["07:00","10:00","16:00","19:30"]},
+  {dia:4,nome:"Terapia del Amor",tema:"Amor Divino",verso:"Amós 3:7 — O Senhor não fará coisa alguma sem revelar aos seus servos",horarios:["07:00","16:00","19:30"]},
+  {dia:5,nome:"Liberación Espiritual",tema:"Liberación",verso:"Isaías 61:1 — Ele me enviou a proclamar libertação aos cativos",horarios:["07:00","10:00","12:00","16:00","19:30"]},
+  {dia:6,nome:"Casos Imposibles",tema:"Fe Inabalável",verso:"Salmos 127:1 — Se o Senhor não edificar a casa, em vão trabalham os que a edificam",horarios:["07:00"]}
+];
+
+const DIAS = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+
+// Mapa
+const map = L.map('map', {
+  center: [-16.5, -65.0],
+  zoom: 6,
+  zoomControl: false,
+  attributionControl: false,
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 18,
+}).addTo(map);
+
+// Marcadores
+const markers = [];
+IGREJAS.forEach((ig, i) => {
+  const icon = L.divIcon({
+    className: 'iurd-icon',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+
+  const marker = L.marker([ig.lat, ig.lng], { icon })
+    .addTo(map)
+    .bindPopup(`
+      <div class="popup-title">🏛️ ${ig.nome}</div>
+      <div class="popup-addr">📍 ${ig.endereco}</div>
+      <div class="popup-addr">🏙️ ${ig.cidade}</div>
+      <div class="popup-phone">📞 ${ig.tel}</div>
+    `);
+
+  markers.push(marker);
+});
+
+// Agrupar por departamento
+function getDepartamentos() {
+  const depts = {};
+  IGREJAS.forEach(ig => {
+    const d = ig.cidade;
+    if (!depts[d]) depts[d] = [];
+    depts[d].push(ig);
+  });
+  return depts;
+}
+
+// Atualizar corrente do dia
+function updateCorrente() {
+  const hoje = new Date().getDay();
+  const c = CORRENTES[hoje];
+  document.getElementById('corrente-dia').textContent = DIAS[hoje];
+  document.getElementById('corrente-nome').textContent = c.nome;
+  document.getElementById('corrente-verso').textContent = c.verso;
+  document.getElementById('corrente-horarios').innerHTML =
+    c.horarios.map(h => `<span>${h}</span>`).join('');
+}
+
+// Lista de igrejas
+function updateIgrejasList() {
+  const container = document.getElementById('igrejas-list');
+  const depts = getDepartamentos();
+  let html = '';
+  Object.keys(depts).sort().forEach(cidade => {
+    depts[cidade].forEach(ig => {
+      html += `<div class="igreja-item" onclick="flyTo(${IGREJAS.indexOf(ig)})">
+        <div>
+          <span class="status-dot" style="background:#4ade80"></span>
+          <span class="nome">${ig.nome}</span>
+          <span class="cidade">— ${ig.cidade}</span>
+        </div>
+        <span style="opacity:0.4;font-size:11px;">📍</span>
+      </div>`;
+    });
+  });
+  container.innerHTML = html;
+}
+
+function flyTo(idx) {
+  const ig = IGREJAS[idx];
+  map.flyTo([ig.lat, ig.lng], 14, { duration: 1 });
+  markers[idx].openPopup();
+}
+
+// Atualizar estatísticas
+function updateStats() {
+  document.getElementById('total-igrejas').textContent = '38';
+  document.getElementById('atendimentos-hoje').textContent = Math.floor(Math.random() * 50);
+  document.getElementById('consentimento-pct').textContent = Math.floor(65 + Math.random() * 20) + '%';
+  document.getElementById('ultima-atualizacao').textContent = new Date().toLocaleTimeString('es-BO');
+}
+
+// Relógio
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('es-BO', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+}
+
+// Inicializar
+updateCorrente();
+updateIgrejasList();
+updateStats();
+updateClock();
+
+setInterval(() => {
+  updateClock();
+  updateStats();
+}, 10000);
+
+// Recalcular tamanho
+setTimeout(() => map.invalidateSize(), 500);
+</script>
+</body>
+</html>
