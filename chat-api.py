@@ -247,6 +247,19 @@ class ChatAPIHandler(BaseHTTPRequestHandler):
         except FileNotFoundError:
             self._send_json({"erro": "Index nao encontrado"}, 404)
 
+    def _serve_hub_iurd(self):
+        """Serve o HUB IURD unificado."""
+        hub_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hub-iurd.html")
+        try:
+            with open(hub_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(content.encode("utf-8"))
+        except FileNotFoundError:
+            self._send_json({"erro": "HUB IURD nao encontrado"}, 404)
+
     def _read_body(self) -> dict:
         length = int(self.headers.get("Content-Length", 0))
         if length > 0:
@@ -281,6 +294,8 @@ class ChatAPIHandler(BaseHTTPRequestHandler):
                 self._serve_dashboard()
             elif path == "/" or path == "/hub":
                 self._serve_index()
+            elif path == "/hub-iurd" or path == "/hub-iurd.html":
+                self._serve_hub_iurd()
             elif path == "/chart.umd.min.js":
                 self._serve_static("chart.umd.min.js")
             elif path == "/executivo":

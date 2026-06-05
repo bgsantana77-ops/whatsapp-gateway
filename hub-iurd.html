@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>HUB IURD Bolivia</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+/* ═══════════════ RESET & BASE ═══════════════ */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f5f5f7;--bg2:#ffffff;--bg3:#e8e8ed;--bg4:#dcdce0;--card:#ffffff;--card-border:#e0e0e5;--text:#1d1d1f;--text2:#6e6e73;--text3:#aeaeb2;--accent:#0071e3;--accent2:#5856d6;--green:#34c759;--red:#ff3b30;--yellow:#ffcc00;--orange:#ff9500;--cyan:#5ac8fa;--pink:#ff2d55;--sidebar-w:240px;--header-h:56px;--radius:14px;--radius-sm:10px}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;letter-spacing:-0.01em}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#c7c7cc;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#a8a8ad}
+
+/* ═══════════════ LAYOUT ═══════════════ */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:rgba(255,255,255,0.85);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-right:1px solid var(--card-border);display:flex;flex-direction:column;overflow:hidden;transition:transform .3s ease}
+.sidebar-brand{padding:16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--card-border);min-height:var(--header-h)}
+.sidebar-brand .logo{width:32px;height:32px;background:linear-gradient(135deg,var(--accent2),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.sidebar-brand h1{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;font-weight:600}
+.sidebar-brand .env{font-size:9px;color:var(--text3);margin-top:-2px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all .15s;text-decoration:none;margin-bottom:2px}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--accent);color:#fff;font-weight:600}
+.nav-item .nav-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+.nav-item .nav-badge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;min-width:18px;text-align:center}
+.sidebar-footer{padding:12px;border-top:1px solid var(--card-border)}
+.sidebar-footer .user-info{display:flex;align-items:center;gap:8px;color:var(--text3);font-size:12px}
+.sidebar-footer .user-info .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:600}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:var(--header-h);min-height:var(--header-h);background:rgba(255,255,255,0.85);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-bottom:1px solid var(--card-border);display:flex;align-items:center;padding:0 20px;gap:12px}
+.topbar .menu-btn{display:none;background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px}
+.topbar h2{font-size:15px;font-weight:600;color:var(--text);flex:1;letter-spacing:-0.01em}
+.topbar .top-actions{display:flex;gap:8px;align-items:center}
+.topbar .top-actions .time{font-size:12px;color:var(--text3);font-variant-numeric:tabular-nums}
+.content{flex:1;overflow-y:auto;padding:20px}
+
+/* ═══════════════ SHARED COMPONENTS ═══════════════ */
+
+/* ── Cards ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04),0 1px 2px rgba(0,0,0,0.02)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0}
+.stat-card .stat-icon{font-size:24px;margin-bottom:8px}
+.stat-card .stat-value{font-size:30px;font-weight:700;color:var(--text);line-height:1.1;letter-spacing:-0.03em}
+.stat-card .stat-label{font-size:12px;color:var(--text2);margin-top:4px}
+.stat-card .stat-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.stat-card.blue::before{background:var(--accent)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.purple::before{background:var(--accent2)}
+.stat-card.red::before{background:var(--red)}
+.stat-card.cyan::before{background:var(--cyan)}
+.stat-card.orange::before{background:var(--orange)}
+.stat-card.pink::before{background:var(--pink)}
+.stat-card.yellow::before{background:var(--yellow)}
+
+/* ── Section ── */
+.section{display:none;animation:fadeIn .25s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.section-header{margin-bottom:20px}
+.section-header h2{font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px;letter-spacing:-0.02em}
+.section-header p{font-size:13px;color:var(--text2)}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto;border:1px solid var(--card-border);border-radius:var(--radius);background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,0.03)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:12px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--card-border);background:var(--bg);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--card-border);color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+
+/* ── Search ── */
+.search-box{position:relative;margin-bottom:16px}
+.search-box input{width:100%;padding:10px 14px 10px 40px;border:1px solid var(--card-border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:14px;outline:none;transition:all .2s;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+.search-box input:focus{border-color:var(--accent)}
+.search-box input::placeholder{color:var(--text3)}
+.search-box .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text3);pointer-events:none}
+
+/* ── Badge ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:600}
+.badge-blue{background:rgba(59,92,235,.2);color:var(--accent)}
+.badge-green{background:rgba(46,204,113,.2);color:var(--green)}
+.badge-red{background:rgba(239,68,68,.2);color:var(--red)}
+.badge-yellow{background:rgba(241,196,15,.2);color:var(--yellow)}
+.badge-purple{background:rgba(102,68,255,.2);color:var(--accent2)}
+.badge-cyan{background:rgba(6,182,212,.2);color:var(--cyan)}
+.badge-orange{background:rgba(243,156,18,.2);color:var(--orange)}
+
+/* ── Timeline ── */
+.timeline{position:relative;padding-left:24px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--card-border)}
+.timeline-item{position:relative;padding-bottom:16px}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-item::before{content:'';position:absolute;left:-20px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--bg2)}
+.timeline-item .tl-time{font-size:11px;font-weight:600;color:var(--accent);margin-bottom:2px}
+.timeline-item .tl-title{font-size:14px;font-weight:600;color:var(--text)}
+.timeline-item .tl-desc{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* ── Corrente Card ── */
+.corrente-card{background:linear-gradient(135deg,#f0f0ff,#ffffff);border:1px solid #e0dff5;border-radius:var(--radius);padding:24px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(88,86,214,0.08)}
+.corrente-card::after{content:'🙏';position:absolute;right:-10px;bottom:-10px;font-size:80px;opacity:.06;pointer-events:none}
+.corrente-card .cc-day{font-size:12px;color:var(--accent2);font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.corrente-card .cc-name{font-size:22px;font-weight:700;color:var(--text);margin-bottom:2px;letter-spacing:-0.02em}
+.corrente-card .cc-verse{font-size:13px;color:var(--text2);font-style:italic;margin-bottom:12px;padding:8px 12px;background:rgba(0,113,227,0.06);border-radius:var(--radius-sm);border-left:3px solid var(--accent)}
+.corrente-card .cc-times{display:flex;flex-wrap:wrap;gap:6px}
+.corrente-card .cc-times .time-tag{padding:4px 10px;background:rgba(102,68,255,.15);border:1px solid rgba(102,68,255,.3);border-radius:6px;font-size:12px;font-weight:600;color:var(--accent2)}
+
+/* ── Week Grid ── */
+.week-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:20px}
+.week-item{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s;text-align:center;box-shadow:0 1px 2px rgba(0,0,0,0.02)}
+.week-item:hover{border-color:var(--accent2)}
+.week-item.active{background:rgba(0,113,227,0.08);border-color:var(--accent)}
+.week-item .wi-day{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase}
+.week-item .wi-name{font-size:13px;font-weight:600;color:var(--text);margin:4px 0}
+.week-item .wi-time{font-size:11px;color:var(--accent2)}
+.week-item.today{position:relative}
+.week-item.today::after{content:'HOJE';position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;font-size:9px;font-weight:600;padding:2px 6px;border-radius:6px}
+
+/* ── Programming Grid ── */
+.prog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.prog-day{border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden}
+.prog-day .pd-header{background:var(--accent2);padding:10px 14px;font-size:13px;font-weight:600;color:#fff;border-bottom:1px solid var(--card-border)}
+.prog-day .pd-item{display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid var(--card-border);gap:10px}
+.prog-day .pd-item:last-child{border-bottom:none}
+.prog-day .pd-time{font-size:12px;font-weight:600;color:var(--accent);min-width:50px;font-variant-numeric:tabular-nums}
+.prog-day .pd-title{font-size:13px;color:var(--text)}
+.prog-day .pd-desc{font-size:11px;color:var(--text3);margin-top:1px}
+
+/* ── Broadcast Form ── */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-group select,.form-group textarea,.form-group input[type="text"]{width:100%;padding:10px 14px;border:1px solid var(--card-border);border-radius:var(--radius-sm);background:var(--card);color:var(--text);font-size:14px;outline:none;transition:border .2s;font-family:inherit}
+.form-group select:focus,.form-group textarea:focus,.form-group input:focus{border-color:var(--accent)}
+.form-group textarea{min-height:120px;resize:vertical}
+.form-group select option{background:var(--bg2);color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#4a6ef5;transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--card-border)}
+.btn-secondary:hover{background:var(--bg4)}
+.btn-success{background:var(--green);color:#000}
+.btn-success:hover{opacity:.9}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-block{width:100%;justify-content:center}
+
+/* ── Alert ── */
+.alert{padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:16px;display:none}
+.alert.show{display:block;animation:fadeIn .2s ease}
+.alert-success{background:rgba(46,204,113,.15);border:1px solid rgba(46,204,113,.3);color:var(--green)}
+.alert-error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.alert-info{background:rgba(59,92,235,.15);border:1px solid rgba(59,92,235,.3);color:var(--accent)}
+.alert-warning{background:rgba(243,156,18,.15);border:1px solid rgba(243,156,18,.3);color:var(--orange)}
+
+/* ── Chart ── */
+.chart-wrap{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.chart-wrap h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
+.chart-wrap .chart-container{position:relative;height:250px}
+
+/* ── Loading ── */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:12px;color:var(--text3)}
+.loading .spinner{width:32px;height:32px;border:3px solid var(--card-border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-size:13px}
+
+/* ── External Link Card ── */
+.ext-link{display:flex;align-items:center;gap:16px;padding:20px;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);text-decoration:none;color:var(--text);transition:all .2s;margin-bottom:12px}
+.ext-link:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 20px rgba(59,92,235,.1)}
+.ext-link .ext-icon{font-size:36px;width:52px;text-align:center}
+.ext-link .ext-info{flex:1}
+.ext-link .ext-title{font-size:16px;font-weight:600;color:var(--text)}
+.ext-link .ext-desc{font-size:12px;color:var(--text2);margin-top:2px}
+.ext-link .ext-action{font-size:13px;color:var(--accent);font-weight:600}
+
+/* ── Grid masonry helpers ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+/* ── Church list ── */
+.church-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:14px;margin-bottom:8px;transition:all .15s;cursor:pointer}
+.church-card:hover{border-color:var(--accent)}
+.church-card .ch-name{font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.church-card .ch-city{font-size:12px;color:var(--text2);margin-top:2px}
+.church-card .ch-detail{font-size:11px;color:var(--text3);margin-top:4px;display:flex;flex-wrap:wrap;gap:4px}
+.church-card .ch-detail span{display:flex;align-items:center;gap:3px}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .sidebar{position:fixed;top:0;left:0;bottom:0;z-index:100;transform:translateX(-100%);width:260px}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:99}
+  .sidebar-overlay.show{display:block}
+  .topbar .menu-btn{display:block}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .week-grid{grid-template-columns:repeat(3,1fr)}
+  .prog-grid{grid-template-columns:1fr}
+  .content{padding:14px}
+  .stat-card .stat-value{font-size:22px}
+}
+
+@media(max-width:420px){
+  .stats-grid{grid-template-columns:1fr}
+  .week-grid{grid-template-columns:repeat(2,1fr)}
+  .topbar h2{font-size:14px}
+}
+
+/* ── Dark scrollbar fix for firefox ── */
+*{scrollbar-color:var(--bg4) transparent;scrollbar-width:thin}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">H</div>
+      <div>
+        <h1>HUB IURD</h1>
+        <div class="env">Bolivia · Painel Unificado</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <a class="nav-item active" data-section="inicio" onclick="navigate('inicio')"><span class="nav-icon">🏠</span> Início</a>
+      <a class="nav-item" data-section="igrejas" onclick="navigate('igrejas')"><span class="nav-icon">⛪</span> Igrejas</a>
+      <a class="nav-item" data-section="correntes" onclick="navigate('correntes')"><span class="nav-icon">🔥</span> Correntes</a>
+      <a class="nav-item" data-section="analise" onclick="navigate('analise')"><span class="nav-icon">📊</span> Análise</a>
+      <a class="nav-item" data-section="tv" onclick="navigate('tv')"><span class="nav-icon">📡</span> TV</a>
+      <a class="nav-item" data-section="radio" onclick="navigate('radio')"><span class="nav-icon">📻</span> Rádio</a>
+      <a class="nav-item" data-section="broadcast" onclick="navigate('broadcast')"><span class="nav-icon">✉️</span> Broadcast</a>
+      <a class="nav-item" data-section="chatwoot" onclick="navigate('chatwoot')"><span class="nav-icon">💬</span> Chatwoot</a>
+      <a class="nav-item" data-section="postiz" onclick="navigate('postiz')"><span class="nav-icon">🌐</span> Postiz</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="avatar">U</div>
+        <div>
+          <div>IURD Bolivia</div>
+          <div id="sidebarStatus" style="font-size:10px;color:var(--green)">● Conectado</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+      <h2 id="pageTitle">🏠 Início</h2>
+      <div class="top-actions">
+        <span class="time" id="clockDisplay"></span>
+        <button class="btn btn-sm btn-secondary" onclick="refreshAll()">🔄</button>
+      </div>
+    </header>
+
+    <!-- ═══ CONTENT ═══ -->
+    <div class="content" id="mainContent">
+
+      <!-- ════════════ INÍCIO ════════════ -->
+      <div class="section active" id="sec-inicio">
+        <div class="section-header">
+          <h2>🏠 Visão Geral</h2>
+          <p>Resumo do ministério IURD Bolivia</p>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card blue"><div class="stat-icon">⛪</div><div class="stat-value" id="statIgrejas">—</div><div class="stat-label">Igrejas</div><div class="stat-sub">Em todo o país</div></div>
+          <div class="stat-card purple"><div class="stat-icon">🔥</div><div class="stat-value">7</div><div class="stat-label">Correntes</div><div class="stat-sub">Uma para cada dia</div></div>
+          <div class="stat-card green"><div class="stat-icon">👥</div><div class="stat-value" id="statPessoas">—</div><div class="stat-label">Pessoas</div><div class="stat-sub">Na base de contatos</div></div>
+          <div class="stat-card cyan"><div class="stat-icon">💬</div><div class="stat-value" id="statMensagens">—</div><div class="stat-label">Mensagens</div><div class="stat-sub">Registradas no sistema</div></div>
+          <div class="stat-card orange"><div class="stat-icon">📡</div><div class="stat-value" id="statCidades">—</div><div class="stat-label">Cidades</div><div class="stat-sub">Com igrejas ativas</div></div>
+          <div class="stat-card pink"><div class="stat-icon">📋</div><div class="stat-value" id="statTemplates">—</div><div class="stat-label">Templates</div><div class="stat-sub">Mensagens prontas</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="chart-wrap">
+            <h3>📊 Igrejas por Cidade</h3>
+            <div class="chart-container"><canvas id="chartCidades"></canvas></div>
+          </div>
+          <div class="chart-wrap">
+            <h3>🔥 Corrente de Hoje</h3>
+            <div id="correnteHoje"><div class="loading"><div class="spinner"></div><p>Carregando...</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ IGREJAS ════════════ -->
+      <div class="section" id="sec-igrejas">
+        <div class="section-header">
+          <h2>⛪ Igrejas</h2>
+          <p>38 igrejas em toda a Bolivia</p>
+        </div>
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="igrejaSearch" placeholder="Buscar igreja, cidade ou endereço..." oninput="filterIgrejas()">
+        </div>
+        <div id="igrejaFilters" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+        <div id="igrejaList"></div>
+      </div>
+
+      <!-- ════════════ CORRENTES ════════════ -->
+      <div class="section" id="sec-correntes">
+        <div class="section-header">
+          <h2>🔥 Correntes de Oração</h2>
+          <p>Programação semanal das correntes IURD</p>
+        </div>
+        <div class="week-grid" id="weekGrid"></div>
+        <div id="correnteDetail"></div>
+      </div>
+
+      <!-- ════════════ ANÁLISE ════════════ -->
+      <div class="section" id="sec-analise">
+        <div class="section-header">
+          <h2>📊 Análise & Métricas</h2>
+          <p>Dados e estatísticas do ministério</p>
+        </div>
+        <div class="grid-2">
+          <div class="chart-wrap">
+            <h3>👥 Pessoas por Origem</h3>
+            <div class="chart-container"><canvas id="chartPessoas"></canvas></div>
+          </div>
+          <div class="chart-wrap">
+            <h3>📊 Distribuição Geográfica</h3>
+            <div class="chart-container"><canvas id="chartGeo"></canvas></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="chart-wrap">
+            <h3>💬 Mensagens Recentes</h3>
+            <div id="mensagensRecentesList"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+          <div class="chart-wrap">
+            <h3>📋 Templates</h3>
+            <div id="templatesList"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TV ════════════ -->
+      <div class="section" id="sec-tv">
+        <div class="section-header">
+          <h2>📡 Programação da TV</h2>
+          <p>Grade semanal — IURD TV</p>
+        </div>
+        <a class="ext-link" href="http://100.85.155.54:4000/tv" target="_blank" rel="noopener">
+          <div class="ext-icon">📺</div>
+          <div class="ext-info">
+            <div class="ext-title">IURD TV — Ao Vivo</div>
+            <div class="ext-desc">Assista à programação ao vivo · Cultos · Programas especiais</div>
+          </div>
+          <div class="ext-action">Abrir →</div>
+        </a>
+        <div id="tvGrid"><div class="loading"><div class="spinner"></div><p>Carregando programação...</p></div></div>
+      </div>
+
+      <!-- ════════════ RÁDIO ════════════ -->
+      <div class="section" id="sec-radio">
+        <div class="section-header">
+          <h2>📻 Programação da Rádio</h2>
+          <p>Grade semanal — IURD Rádio</p>
+        </div>
+        <a class="ext-link" href="http://100.85.155.54:4000/radio" target="_blank" rel="noopener">
+          <div class="ext-icon">📻</div>
+          <div class="ext-info">
+            <div class="ext-title">IURD Rádio — Ao Vivo</div>
+            <div class="ext-desc">Ouça a programação da rádio · Mensagens · Louvor · Palavra</div>
+          </div>
+          <div class="ext-action">Abrir →</div>
+        </a>
+        <div id="radioGrid"><div class="loading"><div class="spinner"></div><p>Carregando programação...</p></div></div>
+      </div>
+
+      <!-- ════════════ BROADCAST ════════════ -->
+      <div class="section" id="sec-broadcast">
+        <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div>
+            <h2>✉️ Broadcast</h2>
+            <p>Envie mensagens em massa para igrejas, correntes ou todos</p>
+          </div>
+          <div id="wahaStatusBadge" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;background:rgba(255,255,255,0.12);border:1px solid var(--card-border)">
+            <span id="wahaStatusDot" style="width:8px;height:8px;border-radius:50%;background:var(--yellow);display:inline-block"></span>
+            <span id="wahaStatusText">WAHA: verificando...</span>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <div class="alert alert-success" id="alertSuccess"></div>
+            <div class="alert alert-error" id="alertError"></div>
+            <div class="alert alert-info" id="alertInfo"></div>
+            <div class="alert alert-warning" id="alertWarning"></div>
+            <div class="form-group">
+              <label>Alvo</label>
+              <select id="bcTarget" onchange="toggleBcTarget()">
+                <option value="igreja">Igreja específica</option>
+                <option value="corrente">Corrente específica</option>
+                <option value="todas">Todas as igrejas</option>
+                <option value="todos">Todos os contatos</option>
+              </select>
+            </div>
+            <div class="form-group" id="bcSelectGroup" style="display:block">
+              <label id="bcSelectLabel">Selecione a igreja</label>
+              <select id="bcSelect"><option>Carregando...</option></select>
+            </div>
+            <div class="form-group">
+              <label>Título do Broadcast</label>
+              <input type="text" id="bcTitle" placeholder="Ex: Culto de Domingo - 05/06" value="Broadcast do Hub">
+            </div>
+            <div class="form-group">
+              <label>Template (opcional)</label>
+              <select id="bcTemplate" onchange="fillTemplate()">
+                <option value="">— Sem template —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Mensagem <span style="color:var(--red)">*</span></label>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
+                <span style="font-size:11px;color:var(--text3);cursor:pointer;padding:2px 8px;border:1px solid var(--card-border);border-radius:4px" onclick="insertVar('{nome}')">{nome}</span>
+                <span style="font-size:11px;color:var(--text3);cursor:pointer;padding:2px 8px;border:1px solid var(--card-border);border-radius:4px" onclick="insertVar('{igreja}')">{igreja}</span>
+                <span style="font-size:11px;color:var(--text3);cursor:pointer;padding:2px 8px;border:1px solid var(--card-border);border-radius:4px" onclick="insertVar('{cidade}')">{cidade}</span>
+                <span style="font-size:11px;color:var(--text3);cursor:pointer;padding:2px 8px;border:1px solid var(--card-border);border-radius:4px" onclick="insertVar('{data}')">{data}</span>
+                <span style="font-size:11px;color:var(--text3);cursor:pointer;padding:2px 8px;border:1px solid var(--card-border);border-radius:4px" onclick="insertVar('{corrente}')">{corrente}</span>
+              </div>
+              <textarea id="bcMessage" placeholder="Digite a mensagem..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Agendamento</label>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <input type="datetime-local" id="bcSchedule" style="flex:1">
+                <span style="font-size:11px;color:var(--text3)">Deixe vazio para enviar agora</span>
+              </div>
+            </div>
+            <div class="form-group" style="display:flex;gap:8px">
+              <button class="btn btn-primary btn-block" id="bcSendBtn" onclick="sendBroadcast()">📨 Salvar Broadcast</button>
+              <button class="btn btn-secondary" id="bcSendNowBtn" onclick="sendBroadcastNow()" style="display:none">📤 Enviar Agora</button>
+            </div>
+          </div>
+          <div>
+            <div class="chart-wrap">
+              <h3>📊 Público Estimado</h3>
+              <div id="publicoEstBox" style="text-align:center;padding:20px">
+                <div style="font-size:40px;font-weight:700;color:var(--accent)" id="publicoEstNum">0</div>
+                <div style="font-size:13px;color:var(--text2);margin-top:4px">pessoas alcançadas</div>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <h3>📋 Últimos Broadcasts</h3>
+              <div id="ultimosEnvios" style="max-height:320px;overflow-y:auto">
+                <div style="text-align:center;padding:20px;color:var(--text3)">Nenhum envio recente</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ CHATWOOT ════════════ -->
+      <div class="section" id="sec-chatwoot">
+        <div class="section-header">
+          <h2>💬 Chatwoot</h2>
+          <p>Atendimento ao cliente e suporte</p>
+        </div>
+        <a class="ext-link" href="http://100.85.155.54:4000" target="_blank" rel="noopener">
+          <div class="ext-icon">💬</div>
+          <div class="ext-info">
+            <div class="ext-title">Chatwoot Dashboard</div>
+            <div class="ext-desc">Sistema de atendimento · Conversas ao vivo · Histórico de mensagens</div>
+          </div>
+          <div class="ext-action">Abrir →</div>
+        </a>
+        <div style="margin-top:16px;border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden;height:500px">
+          <iframe src="http://100.85.155.54:4000" style="width:100%;height:100%;border:none;background:#fff" title="Chatwoot"></iframe>
+        </div>
+      </div>
+
+      <!-- ════════════ POSTIZ ════════════ -->
+      <div class="section" id="sec-postiz">
+        <div class="section-header">
+          <h2>🌐 Postiz — Redes Sociais</h2>
+          <p>Agendamento e publicação de conteúdo</p>
+        </div>
+        <a class="ext-link" href="http://100.85.155.54:4007" target="_blank" rel="noopener">
+          <div class="ext-icon">🌐</div>
+          <div class="ext-info">
+            <div class="ext-title">Postiz Social Media</div>
+            <div class="ext-desc">Programar posts · Facebook, Instagram, YouTube · Calendário de conteúdo</div>
+          </div>
+          <div class="ext-action">Abrir →</div>
+        </a>
+        <div style="margin-top:16px;border:1px solid var(--card-border);border-radius:var(--radius);overflow:hidden;height:500px">
+          <iframe src="http://100.85.155.54:4007" style="width:100%;height:100%;border:none;background:#fff" title="Postiz"></iframe>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   HUB IURD Bolivia — Directus Dashboard
+   Single-file HTML + JS + CSS
+   ═══════════════════════════════════════════════ */
+
+/* ─── Configuration ─── */
+const CONFIG = {
+  directus: 'http://100.85.155.54:8055',
+  email: 'paginaweb.bolivia@gmail.com',
+  password: 'Uni2026!',
+  chatwoot: 'http://100.85.155.54:4000',
+  postiz: 'http://100.85.155.54:4007'
+};
+
+/* ─── State ─── */
+let state = {
+  token: null,
+  igrejas: [],
+  correntes: [],
+  programacao: [],
+  pessoas: [],
+  templates: [],
+  mensagens: [],
+  activeSection: 'inicio',
+  charts: {}
+};
+
+const DIAS = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const DIAS_ABR = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+/* ─── Directus API ─── */
+async function directusLogin() {
+  const r = await fetch(`${CONFIG.directus}/auth/login`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({email: CONFIG.email, password: CONFIG.password})
+  });
+  if (!r.ok) throw new Error('Falha no login Directus');
+  const data = await r.json();
+  state.token = data.data.access_token;
+  return state.token;
+}
+
+async function directusFetch(endpoint) {
+  const r = await fetch(`${CONFIG.directus}${endpoint}`, {
+    headers: {'Authorization': `Bearer ${state.token}`}
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}: ${endpoint}`);
+  const data = await r.json();
+  return data.data || [];
+}
+
+async function directusPost(endpoint, body) {
+  const r = await fetch(`${CONFIG.directus}${endpoint}`, {
+    method: 'POST',
+    headers: {'Authorization': `Bearer ${state.token}`, 'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}: ${endpoint}`);
+  const data = await r.json();
+  return data.data;
+}
+
+/* ─── Token Refresh Automático ─── */
+function updateConnectionStatus(connected) {
+  const el = document.getElementById('sidebarStatus');
+  if (connected) {
+    el.innerHTML = '● Conectado';
+    el.style.color = 'var(--green)';
+  } else {
+    el.innerHTML = '✕ Desconectado';
+    el.style.color = 'var(--red)';
+  }
+}
+
+async function refreshDirectusToken() {
+  const r = await fetch(`${CONFIG.directus}/auth/login`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({email: CONFIG.email, password: CONFIG.password})
+  });
+  if (!r.ok) throw new Error('Falha no refresh do token Directus');
+  const data = await r.json();
+  state.token = data.data.access_token;
+  updateConnectionStatus(true);
+  return state.token;
+}
+
+function startTokenRefresh() {
+  const INTERVAL_MS = 30 * 60 * 1000;   // 30 minutos
+  const RETRY_MS   = 5 * 1000;           // 5 segundos
+
+  let refreshTimer = null;
+  let retryTimer   = null;
+
+  async function doRefresh() {
+    try {
+      await refreshDirectusToken();
+      console.log('✅ Token Directus renovado com sucesso');
+    } catch (e) {
+      console.warn('⚠️ Token refresh falhou, tentando novamente em 5s...', e);
+      updateConnectionStatus(false);
+      // Limpar o timer anterior para evitar múltiplos retries concorrentes
+      if (retryTimer) clearTimeout(retryTimer);
+      retryTimer = setTimeout(doRefresh, RETRY_MS);
+    }
+  }
+
+  // Agendar refresh a cada 30 minutos
+  if (refreshTimer) clearInterval(refreshTimer);
+  refreshTimer = setInterval(doRefresh, INTERVAL_MS);
+  console.log('🔄 Token refresh automático agendado (a cada 30 min)');
+}
+
+/* ─── Navigation ─── */
+function navigate(section) {
+  // Hide all sections
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  // Show target
+  document.getElementById(`sec-${section}`).classList.add('active');
+  const navEl = document.querySelector(`.nav-item[data-section="${section}"]`);
+  if (navEl) navEl.classList.add('active');
+
+  state.activeSection = section;
+
+  // Update title
+  const titles = {
+    inicio:'🏠 Início', igrejas:'⛪ Igrejas', correntes:'🔥 Correntes',
+    analise:'📊 Análise', tv:'📡 TV', radio:'📻 Rádio',
+    broadcast:'✉️ Broadcast', chatwoot:'💬 Chatwoot', postiz:'🌐 Postiz'
+  };
+  document.getElementById('pageTitle').textContent = titles[section] || section;
+
+  // Close sidebar on mobile
+  if (window.innerWidth <= 768) toggleSidebar();
+
+  // Init charts when entering analise
+  if (section === 'analise') initAnaliseCharts();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+/* ─── Clock ─── */
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clockDisplay').textContent =
+    now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateClock, 10000);
+updateClock();
+
+/* ─── Load All Data ─── */
+async function loadAll() {
+  try {
+    await directusLogin();
+    updateConnectionStatus(true);
+    startTokenRefresh();
+  } catch(e) {
+    updateConnectionStatus(false);
+    return;
+  }
+
+  try {
+    const [igrejas, correntes, programacao, templates] = await Promise.all([
+      directusFetch('/items/igrejas?limit=100&fields=id,nome,cidade,endereco,whatsapp,horario_culto,tipo,latitud,longitud'),
+      directusFetch('/items/correntes?limit=10'),
+      directusFetch('/items/programacao?limit=200&sort=dia_semana,horario'),
+      directusFetch('/items/templates?limit=50')
+    ]);
+    state.igrejas = igrejas;
+    state.correntes = correntes;
+    state.programacao = programacao;
+    state.templates = templates;
+
+    // Try to load pessoas and mensagens (might have many records)
+    try {
+      const pessoasData = await directusFetch('/items/pessoas?limit=200');
+      state.pessoas = pessoasData;
+    } catch(e) { state.pessoas = []; }
+
+    try {
+      const mensagensData = await directusFetch('/items/mensagens?limit=50&sort=-created_at');
+      state.mensagens = mensagensData;
+    } catch(e) { state.mensagens = []; }
+
+    // Render everything
+    renderDashboard();
+    renderIgrejas();
+    renderCorrentes();
+    renderTV();
+    renderRadio();
+    renderBroadcastForm();
+    renderAnalise();
+    initCharts();
+  } catch(e) {
+    console.error('Load error:', e);
+  }
+}
+
+/* ─── Refresh ─── */
+async function refreshAll() {
+  Object.values(state.charts).forEach(c => { try { c.destroy(); } catch(e) {} });
+  state.charts = {};
+  await loadAll();
+}
+
+/* ═══════════════════════════════════════════════
+   SECTION: INÍCIO
+   ═══════════════════════════════════════════════ */
+function renderDashboard() {
+  const ig = state.igrejas;
+  const pe = state.pessoas;
+  const me = state.mensagens;
+  const tm = state.templates;
+  const cidades = new Set(ig.map(i => i.cidade).filter(Boolean));
+
+  document.getElementById('statIgrejas').textContent = ig.length;
+  document.getElementById('statPessoas').textContent = pe.length || '—';
+  document.getElementById('statMensagens').textContent = me.length || '—';
+  document.getElementById('statCidades').textContent = cidades.size;
+  document.getElementById('statTemplates').textContent = tm.length;
+
+  // Current day's corrente
+  const hoje = new Date().getDay();
+  const correnteHoje = state.correntes.find(c => c.dia_semana === hoje);
+  const container = document.getElementById('correnteHoje');
+  if (correnteHoje) {
+    let horarios = [];
+    try { horarios = JSON.parse(correnteHoje.horario); } catch(e) {}
+    container.innerHTML = `
+      <div class="corrente-card">
+        <div class="cc-day">${DIAS[hoje]}</div>
+        <div class="cc-name">${correnteHoje.nome}</div>
+        <div class="cc-verse">${correnteHoje.versiculo || ''}</div>
+        <div class="cc-times">
+          ${horarios.map(h => `<span class="time-tag">🕐 ${h}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  } else {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3)">Nenhuma corrente para hoje</div>';
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   SECTION: IGREJAS
+   ═══════════════════════════════════════════════ */
+function renderIgrejas() {
+  const ig = state.igrejas;
+  const cidades = [...new Set(ig.map(i => i.cidade).filter(Boolean))];
+  const filtrosContainer = document.getElementById('igrejaFilters');
+  filtrosContainer.innerHTML = cidades.map(c =>
+    `<span class="badge badge-blue" style="cursor:pointer;padding:4px 10px" onclick="filterIgrejaCidade('${c}')">📍 ${c}</span>`
+  ).join('');
+  filterIgrejas();
+}
+
+function filterIgrejas() {
+  const q = document.getElementById('igrejaSearch').value.toLowerCase();
+  const list = document.getElementById('igrejaList');
+  const filtered = state.igrejas.filter(i =>
+    i.nome.toLowerCase().includes(q) ||
+    (i.cidade||'').toLowerCase().includes(q) ||
+    (i.endereco||'').toLowerCase().includes(q)
+  );
+  list.innerHTML = filtered.map(i => `
+    <div class="church-card" onclick="igrejaMap(${i.id})">
+      <div class="ch-name">⛪ ${i.nome}</div>
+      <div class="ch-city">📍 ${i.cidade || '—'}</div>
+      <div class="ch-detail">
+        <span>📞 ${i.whatsapp || '—'}</span>
+        <span>📋 ${i.tipo || 'igreja'}</span>
+        ${i.horario_culto ? `<span>🕐 ${i.horario_culto}</span>` : ''}
+        ${i.endereco ? `<span>🏠 ${i.endereco}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterIgrejaCidade(cidade) {
+  document.getElementById('igrejaSearch').value = cidade;
+  filterIgrejas();
+}
+
+function igrejaMap(id) {
+  const ig = state.igrejas.find(i => i.id === id);
+  if (ig && ig.latitud && ig.longitud) {
+    window.open(`https://www.google.com/maps?q=${ig.latitud},${ig.longitud}`, '_blank');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   SECTION: CORRENTES
+   ═══════════════════════════════════════════════ */
+function renderCorrentes() {
+  const hoje = new Date().getDay();
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = state.correntes.map(c => {
+    let horarios = [];
+    try { horarios = JSON.parse(c.horario); } catch(e) {}
+    const isToday = c.dia_semana === hoje;
+    return `<div class="week-item ${isToday?'today':''} ${c.dia_semana===state._correnteSel?'active':''}" onclick="selectCorrente(${c.dia_semana})">
+      <div class="wi-day">${DIAS_ABR[c.dia_semana]||'?'}</div>
+      <div class="wi-name">${c.nome}</div>
+      <div class="wi-time">${horarios[0]||'—'}</div>
+    </div>`;
+  }).join('');
+
+  // Select today
+  selectCorrente(hoje);
+}
+
+function selectCorrente(dia) {
+  state._correnteSel = dia;
+  document.querySelectorAll('.week-item').forEach((el,i) => {
+    el.classList.toggle('active', i === dia);
+  });
+
+  const c = state.correntes.find(cc => cc.dia_semana === dia);
+  const container = document.getElementById('correnteDetail');
+  if (!c) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Nenhuma corrente para este dia</div>';
+    return;
+  }
+  let horarios = [];
+  try { horarios = JSON.parse(c.horario); } catch(e) {}
+  container.innerHTML = `
+    <div class="corrente-card">
+      <div class="cc-day">${DIAS[dia]||'?'}</div>
+      <div class="cc-name">${c.nome}</div>
+      <div class="cc-tema" style="font-size:14px;color:var(--text2);margin-bottom:8px">Tema: ${c.tema||'—'}</div>
+      <div class="cc-verse">${c.versiculo||''}</div>
+      <div style="margin-top:12px;font-size:13px;font-weight:600;color:var(--text2)">🕐 Horários</div>
+      <div class="cc-times">${horarios.map(h => `<span class="time-tag">${h}</span>`).join('')}</div>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════
+   SECTION: TV
+   ═══════════════════════════════════════════════ */
+function renderTV() {
+  renderProgramacao('tv', 'tvGrid');
+}
+
+function renderRadio() {
+  renderProgramacao('radio', 'radioGrid');
+}
+
+function renderProgramacao(tipo, containerId) {
+  const items = state.programacao.filter(p => p.tipo === tipo);
+  const container = document.getElementById(containerId);
+  if (!items.length) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3)">Nenhuma programação encontrada</div>';
+    return;
+  }
+
+  const grouped = {};
+  items.forEach(p => {
+    if (!grouped[p.dia_semana]) grouped[p.dia_semana] = [];
+    grouped[p.dia_semana].push(p);
+  });
+
+  container.innerHTML = '<div class="prog-grid">' +
+    Object.keys(grouped).sort().map(dia => {
+      const progs = grouped[dia].sort((a,b) => a.horario.localeCompare(b.horario));
+      return `<div class="prog-day">
+        <div class="pd-header">${DIAS[parseInt(dia)]||'?'}</div>
+        ${progs.map(p => `<div class="pd-item">
+          <div class="pd-time">${p.horario}</div>
+          <div><div class="pd-title">${p.titulo}</div>${p.descricao ? `<div class="pd-desc">${p.descricao}</div>` : ''}</div>
+        </div>`).join('')}
+      </div>`;
+    }).join('') + '</div>';
+}
+
+/* ═══════════════════════════════════════════════
+   SECTION: ANÁLISE
+   ═══════════════════════════════════════════════ */
+function renderAnalise() {
+  // Recent messages
+  const msgs = state.mensagens.slice(0, 10);
+  const msgsList = document.getElementById('mensagensRecentesList');
+  if (msgs.length) {
+    msgsList.innerHTML = `<div style="max-height:300px;overflow-y:auto">${msgs.map(m => `
+      <div style="padding:8px 0;border-bottom:1px solid var(--card-border);font-size:12px">
+        <div style="color:var(--text3);font-size:10px">#${m.id}</div>
+        <div style="color:var(--text)">${(m.texto||m.mensagem||'—').substring(0,100)}</div>
+      </div>
+    `).join('')}</div>`;
+  } else {
+    msgsList.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Nenhuma mensagem</div>';
+  }
+
+  // Templates
+  const tmps = state.templates;
+  const tmpsList = document.getElementById('templatesList');
+  if (tmps.length) {
+    tmpsList.innerHTML = `<div style="max-height:300px;overflow-y:auto">${tmps.map(t => `
+      <div style="padding:8px 0;border-bottom:1px solid var(--card-border)">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${t.titulo||t.nome}</div>
+        <div style="font-size:11px;color:var(--text3)">${t.tipo||'—'}</div>
+      </div>
+    `).join('')}</div>`;
+  } else {
+    tmpsList.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Nenhum template</div>';
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   CHARTS (Chart.js)
+   ═══════════════════════════════════════════════ */
+function initCharts() {
+  // Cities chart
+  const cities = {};
+  state.igrejas.forEach(i => {
+    const cid = i.cidade || 'Outra';
+    cities[cid] = (cities[cid] || 0) + 1;
+  });
+  const sortedCities = Object.entries(cities).sort((a,b) => b[1] - a[1]);
+  const ctx1 = document.getElementById('chartCidades');
+  if (ctx1) {
+    if (state.charts.cidades) state.charts.cidades.destroy();
+    state.charts.cidades = new Chart(ctx1, {
+      type: 'bar',
+      data: {
+        labels: sortedCities.map(c => c[0]),
+        datasets: [{
+          label: 'Igrejas',
+          data: sortedCities.map(c => c[1]),
+          backgroundColor: 'rgba(102,68,255,.6)',
+          borderColor: 'rgba(102,68,255,1)',
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { color:'#666', stepSize:1 }, grid: { color:'rgba(255,255,255,.04)' } },
+          x: { ticks: { color:'#666', maxRotation:45, font:{size:10} }, grid: { display:false } }
+        }
+      }
+    });
+  }
+}
+
+function initAnaliseCharts() {
+  // People by origin
+  const origins = {};
+  state.pessoas.forEach(p => {
+    const o = p.origem || 'Desconhecida';
+    origins[o] = (origins[o] || 0) + 1;
+  });
+  const originColors = ['#6644FF','#3b5ceb','#2ecc71','#f39c12','#ec4899','#06b6d4','#ef4444'];
+  const ctx2 = document.getElementById('chartPessoas');
+  if (ctx2 && Object.keys(origins).length) {
+    if (state.charts.pessoas) state.charts.pessoas.destroy();
+    state.charts.pessoas = new Chart(ctx2, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(origins),
+        datasets: [{
+          data: Object.values(origins),
+          backgroundColor: originColors.slice(0, Object.keys(origins).length),
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color:'#888', padding:8, font:{size:11} }
+          }
+        }
+      }
+    });
+  }
+
+  // Geo distribution
+  const geo = {};
+  state.igrejas.forEach(i => {
+    const cid = i.cidade || 'Outra';
+    geo[cid] = (geo[cid] || 0) + 1;
+  });
+  const sortedGeo = Object.entries(geo).sort((a,b) => b[1] - a[1]).slice(0, 10);
+  const ctx3 = document.getElementById('chartGeo');
+  if (ctx3 && sortedGeo.length) {
+    if (state.charts.geo) state.charts.geo.destroy();
+    state.charts.geo = new Chart(ctx3, {
+      type: 'polarArea',
+      data: {
+        labels: sortedGeo.map(g => g[0]),
+        datasets: [{
+          data: sortedGeo.map(g => g[1]),
+          backgroundColor: ['rgba(102,68,255,.7)','rgba(59,92,235,.7)','rgba(46,204,113,.7)','rgba(243,156,18,.7)','rgba(236,72,153,.7)','rgba(6,182,212,.7)','rgba(239,68,68,.7)','rgba(241,196,15,.7)','rgba(168,85,247,.7)','rgba(34,211,238,.7)'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color:'#888', padding:6, font:{size:10} }
+          }
+        },
+        scales: {
+          r: {
+            grid: { color:'rgba(255,255,255,.05)' },
+            ticks: { display:false }
+          }
+        }
+      }
+    });
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   SECTION: BROADCAST — Formulário completo
+   Salva em Directus (comunicados + historico_broadcast)
+   Pronto para WAHA quando estiver online
+   ═══════════════════════════════════════════════ */
+async function checkWahaStatus() {
+  const dot = document.getElementById('wahaStatusDot');
+  const txt = document.getElementById('wahaStatusText');
+  try {
+    const r = await fetch('/health', { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      dot.style.background = 'var(--green)';
+      txt.textContent = 'WAHA: Online ✅';
+    } else {
+      dot.style.background = 'var(--orange)';
+      txt.textContent = 'WAHA: Indisponível (offline)';
+    }
+  } catch(e) {
+    dot.style.background = 'var(--yellow)';
+    txt.textContent = 'WAHA: Offline (salvando no Directus)';
+  }
+}
+
+function renderBroadcastForm() {
+  // Populate igrejas
+  const selIgreja = document.getElementById('bcSelect');
+  selIgreja.innerHTML = state.igrejas.map(i =>
+    `<option value="${i.id}">${i.nome} — ${i.cidade||''}</option>`
+  ).join('');
+
+  // Populate templates
+  const selTmpl = document.getElementById('bcTemplate');
+  selTmpl.innerHTML = '<option value="">— Sem template —</option>' +
+    state.templates.map(t =>
+      `<option value="${t.id}">${t.titulo||t.nome}</option>`
+    ).join('');
+
+  // Load broadcast history
+  loadBroadcastHistory();
+
+  // Check WAHA status
+  checkWahaStatus();
+}
+
+async function loadBroadcastHistory() {
+  const container = document.getElementById('ultimosEnvios');
+  try {
+    const data = await directusFetch('/items/comunicados?limit=10&sort=-id&fields=id,titulo,texto,nivel,status,data_envio,data_agendado,total_destinos');
+    if (data && data.length) {
+      container.innerHTML = data.map(b => {
+        const statusClass = b.status === 'enviado' ? 'badge-green' : b.status === 'agendado' ? 'badge-yellow' : b.status === 'rascunho' ? 'badge-blue' : 'badge-orange';
+        const statusLabel = b.status || 'rascunho';
+        const when = b.data_envio || b.data_agendado || '—';
+        const preview = (b.texto||'').substring(0, 60);
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--card-border);font-size:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-weight:600;color:var(--text)">${b.titulo||'Sem título'}</span>
+            <span class="badge ${statusClass}">${statusLabel}</span>
+          </div>
+          <div style="color:var(--text3);font-size:11px;margin-top:2px">#${b.id} · ${b.nivel||'—'} · ${when}</div>
+          <div style="color:var(--text2);font-size:11px;margin-top:2px">${preview}${preview.length>=60?'...':''}</div>
+          <div style="color:var(--text3);font-size:10px;margin-top:1px">👥 ${b.total_destinos||0} destinos</div>
+        </div>`;
+      }).join('');
+    } else {
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Nenhum broadcast ainda</div>';
+    }
+  } catch(e) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Erro ao carregar histórico</div>';
+  }
+}
+
+function toggleBcTarget() {
+  const target = document.getElementById('bcTarget').value;
+  const group = document.getElementById('bcSelectGroup');
+  const label = document.getElementById('bcSelectLabel');
+  if (target === 'igreja') {
+    group.style.display = 'block';
+    label.textContent = 'Selecione a igreja';
+    const sel = document.getElementById('bcSelect');
+    sel.innerHTML = state.igrejas.map(i =>
+      `<option value="${i.id}">${i.nome} — ${i.cidade||''}</option>`
+    ).join('');
+    updatePublico();
+  } else if (target === 'corrente') {
+    group.style.display = 'block';
+    label.textContent = 'Selecione a corrente';
+    const sel = document.getElementById('bcSelect');
+    sel.innerHTML = state.correntes.map(c =>
+      `<option value="${c.id}">${c.nome} (${DIAS[c.dia_semana]||'?'})</option>`
+    ).join('');
+    updatePublico();
+  } else {
+    group.style.display = 'none';
+    updatePublico();
+  }
+}
+
+function insertVar(v) {
+  const ta = document.getElementById('bcMessage');
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  ta.value = ta.value.substring(0, start) + v + ta.value.substring(end);
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = start + v.length;
+}
+
+function fillTemplate() {
+  const id = document.getElementById('bcTemplate').value;
+  if (!id) return;
+  const tmpl = state.templates.find(t => t.id == id);
+  if (tmpl) {
+    document.getElementById('bcMessage').value = tmpl.texto || tmpl.mensagem || '';
+    if (tmpl.titulo || tmpl.nome) {
+      document.getElementById('bcTitle').value = tmpl.titulo || tmpl.nome;
+    }
+  }
+}
+
+function updatePublico() {
+  const target = document.getElementById('bcTarget').value;
+  let total = 0;
+  if (target === 'todas') total = state.pessoas.length || state.igrejas.length * 10;
+  else if (target === 'todos') total = state.pessoas.length || 50;
+  else if (target === 'igreja') {
+    const selId = document.getElementById('bcSelect').value;
+    total = state.pessoas.filter(p => p.igreja_id == selId).length || 5;
+  }
+  else total = state.pessoas.length || 10;
+  document.getElementById('publicoEstNum').textContent = Math.max(total, 1);
+}
+
+function getBcPayload() {
+  return {
+    titulo: document.getElementById('bcTitle').value.trim() || 'Broadcast do Hub',
+    texto: document.getElementById('bcMessage').value.trim(),
+    nivel: document.getElementById('bcTarget').value,
+    filtro_id: document.getElementById('bcSelect').value || null,
+    template_id: document.getElementById('bcTemplate').value || null,
+    data_agendado: document.getElementById('bcSchedule').value || null,
+    status: document.getElementById('bcSchedule').value ? 'agendado' : 'rascunho',
+    total_destinos: parseInt(document.getElementById('publicoEstNum').textContent) || 0,
+    criado_por: 'HUB IURD'
+  };
+}
+
+async function sendBroadcast() {
+  const msg = document.getElementById('bcMessage').value.trim();
+  if (!msg) {
+    showAlert('error', '✏️ Digite uma mensagem para o broadcast');
+    return;
+  }
+
+  const btn = document.getElementById('bcSendBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Salvando...';
+
+  try {
+    const payload = getBcPayload();
+
+    // 1. Salvar no Directus (coleção comunicados)
+    const saved = await directusPost('/items/comunicados', payload);
+
+    // 2. Também salvar no historico_broadcast
+    try {
+      await directusPost('/items/historico_broadcast', {
+        comunicado_id: saved.id,
+        nivel: payload.nivel,
+        template_id: payload.template_id,
+        total_destinos: payload.total_destinos,
+        data_envio: payload.data_agendado || new Date().toISOString(),
+        status: payload.status,
+        destinatario: payload.nivel === 'igreja' ? 'Igreja #' + payload.filtro_id : payload.nivel,
+        escopo: payload.nivel,
+        canal: 'WhatsApp'
+      });
+    } catch(e) {
+      console.warn('Historico broadcast fallback:', e.message);
+    }
+
+    showAlert('success', `✅ Broadcast #${saved.id} salvo${payload.data_agendado ? ' · Agendado para ' + new Date(payload.data_agendado).toLocaleString('pt-BR') : ' (rascunho)'}`);
+
+    // Se tiver data de agendamento, também salvar em agendamentos_mensagem
+    if (payload.data_agendado) {
+      try {
+        await directusPost('/items/agendamentos_mensagem', {
+          data_agendado: payload.data_agendado,
+          escopo: payload.nivel,
+          igreja_id: payload.filtro_id ? parseInt(payload.filtro_id) : null,
+          template_id: payload.template_id ? parseInt(payload.template_id) : null,
+          canal: 'whatsapp',
+          enviado: 0
+        });
+      } catch(e) {
+        console.warn('Agendamento fallback:', e.message);
+      }
+    }
+
+    // Limpar formulário
+    document.getElementById('bcMessage').value = '';
+    document.getElementById('bcSchedule').value = '';
+
+    // Recarregar histórico
+    await loadBroadcastHistory();
+  } catch(e) {
+    showAlert('error', `❌ Erro ao salvar: ${e.message}`);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '📨 Salvar Broadcast';
+}
+
+async function sendBroadcastNow() {
+  const msg = document.getElementById('bcMessage').value.trim();
+  if (!msg) {
+    showAlert('error', '✏️ Digite uma mensagem para o broadcast');
+    return;
+  }
+
+  const payload = getBcPayload();
+  payload.status = 'enviando';
+  payload.data_envio = new Date().toISOString();
+
+  // Tenta enviar via WAHA API
+  try {
+    const wahaR = await fetch('/broadcast', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if (wahaR.ok) {
+      payload.status = 'enviado';
+      showAlert('success', '✅ Broadcast enviado via WAHA!');
+    } else {
+      // WAHA respondeu erro — salva como rascunho
+      payload.status = 'rascunho';
+      showAlert('warning', '⚠️ WAHA respondeu com erro. Salvo como rascunho.');
+    }
+  } catch(e) {
+    // WAHA offline — salva como rascunho para envio posterior
+    payload.status = 'rascunho';
+    showAlert('warning', '⚠️ WAHA offline. Broadcast salvo como rascunho para envio posterior.');
+  }
+
+  // Salvar no Directus
+  try {
+    delete payload.data_agendado;
+    await directusPost('/items/comunicados', payload);
+    await loadBroadcastHistory();
+  } catch(e2) {
+    showAlert('error', `❌ Erro ao salvar: ${e2.message}`);
+  }
+}
+
+function showAlert(type, msg) {
+  const alertMap = {
+    success: 'alertSuccess',
+    error: 'alertError',
+    info: 'alertInfo',
+    warning: 'alertWarning'
+  };
+  const el = document.getElementById(alertMap[type]);
+  if (el) {
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 5000);
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadAll();
+});
+</script>
+</body>
+</html>
