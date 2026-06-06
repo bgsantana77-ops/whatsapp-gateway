@@ -20,7 +20,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 import traceback
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 # ── Config ──────────────────────────────────────────────────────────────
 DIRECTUS_URL = os.getenv("DIRECTUS_URL", "http://localhost:8055")
@@ -104,85 +104,22 @@ def directus_post(collection: str, data: dict) -> dict:
 # ── Handler ──────────────────────────────────────────────────────────────
 
 class ChatAPIHandler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
 
     def _send_json(self, data: dict | list, status: int = 200):
+        body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
-        self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
-
-    def _serve_chat_interface(self):
-        """Serve o chat interface HTML."""
-        chat_html = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat-interface.html")
-        try:
-            with open(chat_html, "r", encoding="utf-8") as f:
-                content = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(content.encode("utf-8"))
-        except FileNotFoundError:
-            self._send_json({"erro": "Chat interface nao encontrada"}, 404)
-
-    def _serve_atendimento(self):
-        """Serve o dashboard de atendimento IURD Bolivia."""
-        html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "atendimento.html")
-        try:
-            with open(html_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(content.encode("utf-8"))
-        except FileNotFoundError:
-            self._send_json({"erro": "Atendimento dashboard nao encontrado"}, 404)
-
-    def _serve_dashboard(self):
-        """Serve o dashboard IURD dashboard."""
-        dash_html = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard-iurd.html")
-        try:
-            with open(dash_html, "r", encoding="utf-8") as f:
-                content = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(content.encode("utf-8"))
-        except FileNotFoundError:
-            self._send_json({"erro": "Dashboard nao encontrado"}, 404)
-
-    def _serve_igrejas(self):
-        """Serve o dashboard de Igrejas e Correntes."""
-        igrejas_html = os.path.join(os.path.dirname(os.path.abspath(__file__)), "igrejas.html")
-        try:
-            with open(igrejas_html, "r", encoding="utf-8") as f:
-                content = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(content.encode("utf-8"))
-        except FileNotFoundError:
-            self._send_json({"erro": "Pagina de igrejas nao encontrada"}, 404)
-
-    def _serve_executivo(self):
-        """Serve o dashboard executivo IURD Bolivia."""
-        exec_html = os.path.join(os.path.dirname(os.path.abspath(__file__)), "executivo.html")
-        try:
-            with open(exec_html, "r", encoding="utf-8") as f:
-                content = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(content.encode("utf-8"))
-        except FileNotFoundError:
-            self._send_json({"erro": "Dashboard executivo nao encontrado"}, 404)
+        self.wfile.write(body)
 
     def _handle_directus_proxy_get(self, params: str):
         """Proxy GET para Directus API."""
         try:
-            # params is the full query string like "items/pessoas?aggregate[count]=*"
             url = f"{DIRECTUS_URL}/{params}"
             token = get_token()
             req = urllib.request.Request(
@@ -217,49 +154,6 @@ class ChatAPIHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self._send_json({"erro": str(e)}, 500)
 
-    def _serve_static(self, filename):
-        """Serve um arquivo estático do diretório do gateway."""
-        filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
-        try:
-            with open(filepath, "rb") as f:
-                content = f.read()
-            ext = filename.split(".")[-1].lower()
-            mime = {"js": "application/javascript", "css": "text/css", "png": "image/png", 
-                    "jpg": "image/jpeg", "svg": "image/svg+xml", "ico": "image/x-icon"}.get(ext, "application/octet-stream")
-            self.send_response(200)
-            self.send_header("Content-Type", mime)
-            self.send_header("Cache-Control", "public, max-age=3600")
-            self.end_headers()
-            self.wfile.write(content)
-        except FileNotFoundError:
-            self._send_json({"erro": "Arquivo nao encontrado"}, 404)
-
-    def _serve_index(self):
-        """Serve a página inicial (hub) do sistema."""
-        idx_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
-        try:
-            with open(idx_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(content.encode("utf-8"))
-        except FileNotFoundError:
-            self._send_json({"erro": "Index nao encontrado"}, 404)
-
-    def _serve_hub_iurd(self):
-        """Serve o HUB IURD unificado."""
-        hub_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "hub-iurd.html")
-        try:
-            with open(hub_path, "r", encoding="utf-8") as f:
-                content = f.read()
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(content.encode("utf-8"))
-        except FileNotFoundError:
-            self._send_json({"erro": "HUB IURD nao encontrado"}, 404)
-
     def _read_body(self) -> dict:
         length = int(self.headers.get("Content-Length", 0))
         if length > 0:
@@ -288,22 +182,6 @@ class ChatAPIHandler(BaseHTTPRequestHandler):
                 self._handle_list_pendentes(params)
             elif path == "/health":
                 self._send_json({"status": "ok"})
-            elif path == "/chat" or path == "/chat.html":
-                self._serve_chat_interface()
-            elif path == "/dashboard" or path == "/dashboard.html":
-                self._serve_dashboard()
-            elif path == "/" or path == "/hub":
-                self._serve_index()
-            elif path == "/hub-iurd" or path == "/hub-iurd.html":
-                self._serve_hub_iurd()
-            elif path == "/chart.umd.min.js":
-                self._serve_static("chart.umd.min.js")
-            elif path == "/executivo":
-                self._serve_executivo()
-            elif path == "/atendimento" or path == "/atendimento.html":
-                self._serve_atendimento()
-            elif path == "/igrejas" or path == "/igrejas.html":
-                self._serve_igrejas()
             elif path.startswith("/directus/items/") or path.startswith("/directus/auth/"):
                 # Proxy para Directus - extrair subpath após /directus/
                 subpath = path[len("/directus/"):]
@@ -696,7 +574,7 @@ class ChatAPIHandler(BaseHTTPRequestHandler):
             self._send_json({"erro": str(e)}, 500)
 
 def main():
-    server = HTTPServer(("0.0.0.0", API_PORT), ChatAPIHandler)
+    server = ThreadingHTTPServer(("0.0.0.0", API_PORT), ChatAPIHandler)
     print(f"[Chat-API] Servidor rodando em http://0.0.0.0:{API_PORT}")
     print(f"[Chat-API] Endpoints:")
     print(f"           GET  /pessoas?search=...")
