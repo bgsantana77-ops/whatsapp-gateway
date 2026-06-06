@@ -31,8 +31,23 @@ PORT = int(os.environ.get("PORT", 3099))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import enviar_whatsapp
 
+# --- MODO TREINO (15 dias de supervisão humana total) ------------------
+MODO_TREINO = True
+
 # --- Numero do Bgs (sempre responde automatico) ------------------------
 NUMERO_BGS = "59178440354"  # +591 784 40 354 — sempre AUTO
+
+# Números autorizados para teste (recebem respostas mesmo em modo treino)
+NUMEROS_TESTE = [
+    "59178440353@c.us",   # TV IURD — número oficial da igreja
+    "59178440354@c.us",   # Bgs — direção nacional
+    "59178440353",
+    "59178440354",
+    f"{NUMERO_BGS}@c.us",
+    NUMERO_BGS,
+    f"{NUMERO_BGS}@lid",
+]
+
 # Formatos possiveis: @c.us, @lid, ou numero puro
 FORMATOS_BGS = [
     f"{NUMERO_BGS}@c.us",
@@ -95,13 +110,17 @@ def auto_approve(classificacao: str, confianca: float, remetente: str = "") -> b
         confianca:     score de confianca da IA (0-100)
         remetente:     numero do remetente (opcional)
 
-    Regras:
+    Regras ATUALIZADAS (FASE TREINO):
+        * MODO_TREINO = True e remetente NAO eh numero de teste -> sempre False
         * NUMERO_BGS (Bgs) -> sempre True (teste de funcionamento)
         * CRITICO -> nunca IA (return False)
         * URGENTE -> IA responde AGORA, humano revisa depois (return True)
         * NORMAL  -> so auto-aprova se confianca >= 90
     """
-    # Bgs: sempre responde automatico — canal de confianca
+    # MODO TREINO: so auto-aprova se for numero de teste
+    if MODO_TREINO and remetente not in NUMEROS_TESTE and remetente not in FORMATOS_BGS:
+        print(f"[IA] MODO TREINO: bloqueando envio automatico para {remetente}")
+        return False
     if remetente in FORMATOS_BGS:
         return True
     if classificacao == "critico":
@@ -360,11 +379,31 @@ def processar_mensagem(remetente, texto, msg_id=0):
     6. Salva no Directus com status adequado
     7. Se auto-aprovado: envia via WAHA imediatamente
     """
-    # --- TV/Radio: resposta automatica sem aprovacao ---
+    # ------------------------------------------------------------------
+    #  TV/Radio: resposta automatica — MAS respeita MODO TREINO
+    # ------------------------------------------------------------------
     import tv_radio_handler
     tv_result = tv_radio_handler.processar_mensagem_tv_radio(remetente, texto, msg_id)
     if tv_result['acao'] == 'responder_direto':
         print(f"[IA] TV/Radio: resposta automatica para {remetente}")
+        
+        # MODO TREINO: se nao for numero de teste, vai para pendente
+        if MODO_TREINO and remetente not in NUMEROS_TESTE and remetente not in FORMATOS_BGS:
+            print(f"[IA] MODO TREINO: TV/Radio resposta bloqueada para {remetente}, salvando como pendente")
+            data = {
+                "msg_original": texto,
+                "resposta_ia": tv_result['resposta'],
+                "resposta_final": tv_result['resposta'],
+                "classificacao": "tv_radio_treino",
+                "status": "pendente",
+                "confianca_ia": 100,
+                "auto_aprovado": False,
+                "nota": "MODO TREINO - resposta bloqueada para revisao humana"
+            }
+            directus_api("POST", "/items/respostas_pendentes", data)
+            return
+
+        # Nao bloqueado: envia via WAHA
         chat_id = remetente
         payload = json.dumps({
             "session": "default",
@@ -577,6 +616,7 @@ class IAListener(http.server.BaseHTTPRequestHandler):
     """Servidor HTTP que recebe webhooks e webhooks de aprovacao."""
 
     def do_POST(self):
+        global MODO_TREINO
         length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(length) if length > 0 else b"{}"
 
@@ -614,10 +654,26 @@ class IAListener(http.server.BaseHTTPRequestHandler):
                 return
 
             texto_final = texto_aprovado or data.get("resposta_ia", "")
+            texto_ia = data.get("resposta_ia", "")
 
             if not texto_final or not chat_id:
                 self._respond(400, {"error": "texto e chatId required"})
                 return
+
+            # Verifica se houve correcao (humano editou a resposta)
+            if texto_ia and texto_final != texto_ia:
+                # Salvou correcao para treinar o sistema
+                correcao = {
+                    "pergunta_original": data.get("msg_original", ""),
+                    "resposta_ia_original": texto_ia,
+                    "resposta_corrigida": texto_final,
+                    "categoria": data.get("classificacao", ""),
+                    "confianca_ia": data.get("confianca_ia", 0),
+                    "diferenca": f"Humano corrigiu: '{texto_ia[:50]}...' → '{texto_final[:50]}...'",
+                    "corrigido_por": aprovado_por,
+                }
+                directus_api("POST", "/items/correcoes", correcao)
+                print(f"[IA] CORRECAO salva: resposta editada por {aprovado_por}")
 
             directus_api("PATCH", f"/items/respostas_pendentes/{resposta_id}", {
                 "status": "aprovada" if acao == "approve" else "editada",
@@ -628,6 +684,29 @@ class IAListener(http.server.BaseHTTPRequestHandler):
             self._enviar_waha(chat_id, texto_final)
             self._respond(200, {"status": "enviado"})
 
+        elif self.path == "/ia/modo":
+            # Endpoint para consultar/alternar modo treino
+            self._respond(200, {
+                "modo_treino": MODO_TREINO,
+                "status": "treino" if MODO_TREINO else "produção",
+                "numeros_teste": len(NUMEROS_TESTE),
+                "mensagem": "Todas as mensagens vao para revisao humana" if MODO_TREINO else "IA pode responder automaticamente"
+            })
+
+        elif self.path == "/ia/modo/toggle":
+            # Alterna modo treino (requer confirmacao)
+            acao_toggle = data.get("acao", "toggle")
+            if acao_toggle == "set":
+                MODO_TREINO = data.get("valor", True)
+            else:
+                MODO_TREINO = not MODO_TREINO
+            print(f"[IA] MODO TREINO alternado para: {MODO_TREINO}")
+            self._respond(200, {
+                "modo_treino": MODO_TREINO,
+                "status": "treino" if MODO_TREINO else "producao",
+                "mensagem": "Treino ATIVADO - todas as mensagens vao para revisao humana" if MODO_TREINO else "Producao ATIVADA - IA pode responder automaticamente"
+            })
+
         elif self.path == "/ia/health":
             self._respond(200, {"status": "ok", "deepseek": bool(DEEPSEEK_API_KEY)})
 
@@ -637,6 +716,13 @@ class IAListener(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/ia/health":
             self._respond(200, {"status": "ok", "deepseek": bool(DEEPSEEK_API_KEY)})
+        elif self.path == "/ia/modo":
+            self._respond(200, {
+                "modo_treino": MODO_TREINO,
+                "status": "treino" if MODO_TREINO else "producao",
+                "numeros_teste": len(NUMEROS_TESTE),
+                "mensagem": "MODO TREINO - todas as mensagens vao para revisao humana" if MODO_TREINO else "MODO PRODUCAO - IA responde automaticamente"
+            })
         else:
             self._respond(404, {"error": "Rota nao encontrada"})
 
@@ -686,6 +772,12 @@ def main():
     print(f"  DeepSeek: {'OK' if DEEPSEEK_API_KEY else 'FALTA'} {DEEPSEEK_MODEL}")
     print(f"  Directus: {DIRECTUS_URL}")
     print(f"  WAHA: {WAHA_URL}")
+    print()
+    print(f"  MODO: {'🧪 TREINO (15 dias) - NADA enviado sem humano' if MODO_TREINO else '🚀 PRODUCAO - IA pode responder diretamente'}")
+    if MODO_TREINO:
+        print(f"  ⚠️  Apenas numeros de teste recebem respostas:")
+        for n in NUMEROS_TESTE[:4]:
+            print(f"       {n}")
     print()
     print(f"  MODOS DE RESPOSTA:")
     print(f"    AUTO     -> confianca >= 90 (responde direto)")
