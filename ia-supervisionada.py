@@ -195,6 +195,82 @@ def enviar_resposta(telefone: str, texto: str) -> dict:
     return resultado
 
 
+def buscar_base_conhecimento(texto: str, categoria: str = None) -> dict:
+    """
+    Busca na base de conhecimento do Directus a melhor resposta para o texto.
+
+    Args:
+        texto: mensagem do usuario
+        categoria: categoria classificada (opcional)
+
+    Returns:
+        dict com {'resposta': str, 'confianca': float, 'match': bool} ou
+        {'match': False} se nao encontrar
+    """
+    try:
+        # Buscar todas as respostas ativas da base de conhecimento
+        filtro = '{"status":"active"}'
+        if categoria:
+            filtro = f'{{"status":"active","categoria":"{categoria}"}}'
+
+        result = directus_api("GET", f"/items/base_conhecimento?filter={__import__('urllib.parse', fromlist=['quote']).quote(filtro)}&limit=70")
+        if not result or 'data' not in result:
+            return {'match': False}
+
+        respostas = result['data']
+        t = texto.lower().strip()
+        palavras_texto = set(t.split())
+
+        melhor_match = None
+        melhor_score = 0.0
+
+        for item in respostas:
+            pergunta = item.get('pergunta_modelo', '').lower()
+            palavras_pergunta = set(pergunta.split())
+
+            # Calcula similaridade por palavras compartilhadas
+            if not palavras_pergunta:
+                continue
+
+            # Jaccard similarity entre palavras do texto e da pergunta modelo
+            intersection = palavras_texto & palavras_pergunta
+            union = palavras_texto | palavras_pergunta
+            jaccard = len(intersection) / len(union) if union else 0
+
+            # Bonus se a pergunta modelo esta contida no texto
+            if len(pergunta) > 5 and pergunta in t:
+                jaccard = max(jaccard, 0.7)
+
+            # Bonus se palavras-chave do texto estao na pergunta
+            palavras_chave = [p for p in palavras_texto if len(p) > 3]
+            if palavras_chave:
+                kws = sum(1 for p in palavras_chave if p in pergunta)
+                bonus_kw = kws / len(palavras_chave) * 0.3
+                jaccard = min(1.0, jaccard + bonus_kw)
+
+            if jaccard > melhor_score:
+                melhor_score = jaccard
+                melhor_match = item
+
+        if melhor_match and melhor_score >= 0.15:
+            confianca_kb = melhor_match.get('confianca_minima', 90)
+            # Quanto maior o jaccard, maior a confianca
+            confianca_final = min(100.0, confianca_kb + (melhor_score * 20))
+            return {
+                'match': True,
+                'resposta': melhor_match['resposta_modelo'],
+                'confianca': round(confianca_final, 1),
+                'score': round(melhor_score, 3),
+                'pergunta_modelo': melhor_match['pergunta_modelo']
+            }
+
+        return {'match': False}
+
+    except Exception as e:
+        print(f"[IA] Erro ao buscar base de conhecimento: {e}")
+        return {'match': False}
+
+
 # ------------------------------------------------------------------
 #  DeepSeek
 # ------------------------------------------------------------------
@@ -367,6 +443,36 @@ def processar_mensagem(remetente, texto, msg_id=0):
     confianca = calcular_confianca(texto, classificacao)
     print(f"[IA] Msg {msg_id} de {remetente}: class={classificacao}, confianca={confianca}")
 
+    # --- NOVO: Busca na Base de Conhecimento -----------------------------
+    kb_result = buscar_base_conhecimento(texto, classificacao)
+    if kb_result['match']:
+        # Mapeia classificacao textual para categoria da KB
+        cat_map = {'critico': 'URGENTE', 'urgente': 'URGENTE', 'normal': None}
+        kb_cat = cat_map.get(classificacao)
+        if not kb_cat:
+            kb_result = buscar_base_conhecimento(texto)
+
+        confianca_kb = kb_result['confianca']
+        confianca_minima = 90  # padrao
+
+        if confianca_kb >= confianca_minima:
+            # Match forte: usa resposta da KB, nao chama DeepSeek
+            resposta = kb_result['resposta']
+            confianca = max(confianca, confianca_kb)
+            origem = f"KB (score: {kb_result.get('score', 0)}, pergunta: '{kb_result.get('pergunta_modelo', '')[:40]}')"
+            print(f"[IA] KB MATCH: {origem}")
+        else:
+            # Match fraco: usa KB como base mais DeepSeek
+            resposta_kb = kb_result['resposta']
+            resposta_deepseek = deepseek_generate(texto, msg_id)
+            resposta = f"{resposta_kb}\n\n{resposta_deepseek}"
+            confianca = max(confianca, confianca_kb)
+            print(f"[IA] KB partial match + DeepSeek: confianca={confianca_kb}")
+    else:
+        # Sem match na KB: chama DeepSeek normalmente
+        resposta = deepseek_generate(texto, msg_id)
+        print(f"[IA] Sem match KB. Resposta DeepSeek: {resposta[:60]}...")
+
     # --- CRITICO: nunca IA (exceto Bgs) --------------------------------
     if classificacao == "critico" and remetente not in FORMATOS_BGS:
         data = {
@@ -381,9 +487,7 @@ def processar_mensagem(remetente, texto, msg_id=0):
         print(f"[IA] Critico salvo - requer atencao humana imediata!")
         return
 
-    # --- Gera resposta com DeepSeek (para normal e urgente) ----------
-    resposta = deepseek_generate(texto, msg_id)
-    print(f"[IA] Resposta gerada: {resposta[:60]}...")
+    # --- Gera resposta (ja foi gerada pela KB ou DeepSeek acima) -------
 
     # --- Decide se pode auto-aprovar ---------------------------------
     pode_auto = auto_approve(classificacao, confianca, remetente)
