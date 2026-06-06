@@ -32,7 +32,19 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import enviar_whatsapp
 
 # --- MODO TREINO (15 dias de supervisão humana total) ------------------
-MODO_TREINO = True
+MODO_TREINO = True  # Default seguro
+
+# Tenta carregar do SQLite (persistencia)
+import sqlite3 as _sqlite3
+try:
+    _conn = _sqlite3.connect("/home/catedral/directus/database/iurd360.db")
+    _row = _conn.execute("SELECT valor FROM sys_config WHERE chave='modo_treino'").fetchone()
+    if _row:
+        MODO_TREINO = _row[0].lower() == 'true'
+    _conn.close()
+except:
+    pass  # Mantem default True
+print(f"[IA] MODO TREINO carregado: {MODO_TREINO}")
 
 # --- Numero do Bgs (sempre responde automatico) ------------------------
 NUMERO_BGS = "59178440354"  # +591 784 40 354 — sempre AUTO
@@ -214,6 +226,125 @@ def enviar_resposta(telefone: str, texto: str) -> dict:
     return resultado
 
 
+# ==================================================================
+#  CONSENTIMENTO DO USUARIO (Lei Boliviana de Protecao de Dados)
+# ==================================================================
+
+MENSAGEM_CONSENTIMENTO = (
+    "🙏 Ola! Obrigado por nos contactar. "
+    "Antes de continuarmos, precisamos da sua autorizacao para enviar mensagens sobre "
+    "cultos, eventos e orientacoes da IURD Bolivia. "
+    "\n\n"
+    "Voce autoriza? Responda:\n"
+    "✅ *SIM* - quero receber mensagens\n"
+    "❌ *NAO* - nao quero receber mensagens"
+)
+
+# Palavras que indicam autorizacao
+PALAVRAS_SIM = ["sim", "sou", "pode", "ok", "okay", "claro", "aceito", "autorizo",
+                "quero", "si", "yes", "dale", "vamos", "pode sim", "pode falar"]
+PALAVRAS_NAO = ["nao", "não", "no", "nop", "pare", "stop", "recuso", "quero nao",
+                "quero não", "nao quero", "não quero", "deixa", "depois"]
+
+
+def verificar_consentimento(remetente: str, texto: str) -> dict:
+    """
+    Verifica se o usuario autorizou o contato.
+    
+    Returns:
+        dict com 'acao' e 'resposta' (se aplicavel)
+        
+        acao: 'autorizado' - ja consentiu, pode prosseguir
+              'perguntar'  - precisa perguntar primeiro
+              'resposta_sim' - esta respondendo SIM ao consentimento
+              'resposta_nao' - esta respondendo NAO
+              'bloquear'   - ja recusou, ignorar mensagem
+    """
+    # Bgs e numeros de teste: sempre autorizados
+    if remetente in FORMATOS_BGS or remetente in NUMEROS_TESTE:
+        return {'acao': 'autorizado'}
+    
+    try:
+        # Busca pessoa no banco
+        telefone_limpo = remetente.replace('@c.us', '').replace('@lid', '').strip()
+        
+        result = directus_api("GET", 
+            f"/items/pessoas?filter=%7B%22telefone%22%3A%22{telefone_limpo}%22%7D&limit=1")
+        
+        if result and result.get('data'):
+            pessoa = result['data'][0]
+            consent = pessoa.get('consentimento', 0)
+            
+            if consent == 1:
+                # Ja autorizou
+                return {'acao': 'autorizado'}
+            
+            if consent == -1:
+                # Recusou permanentemente
+                return {'acao': 'bloquear'}
+            
+            # Tem pessoa no banco mas nao consentiu
+            # Verifica se a mensagem atual eh uma resposta ao consentimento
+            t = texto.lower().strip()
+            for palavra in PALAVRAS_SIM:
+                if palavra in t:
+                    # Registra consentimento
+                    directus_api("PATCH", f"/items/pessoas/{pessoa['id']}", {
+                        'consentimento': 1,
+                        'data_consentimento': 'now()'
+                    })
+                    directus_api("POST", "/items/consentimento_log", {
+                        'pessoa_id': pessoa['id'],
+                        'telefone': telefone_limpo,
+                        'acao': 'concedido',
+                        'metodo': 'automatico',
+                        'detalhes': f"Resposta: '{texto[:100]}'"
+                    })
+                    return {'acao': 'resposta_sim'}
+            
+            for palavra in PALAVRAS_NAO:
+                if palavra in t:
+                    # Registra recusa
+                    directus_api("PATCH", f"/items/pessoas/{pessoa['id']}", {
+                        'consentimento': -1
+                    })
+                    directus_api("POST", "/items/consentimento_log", {
+                        'pessoa_id': pessoa['id'],
+                        'telefone': telefone_limpo,
+                        'acao': 'recusado',
+                        'metodo': 'automatico',
+                        'detalhes': f"Recusou: '{texto[:100]}'"
+                    })
+                    return {'acao': 'resposta_nao'}
+            
+            # Nao respondeu sobre consentimento ainda
+            return {'acao': 'perguntar', 'resposta': MENSAGEM_CONSENTIMENTO}
+        
+        else:
+            # Pessoa nao encontrada no banco - cria e pergunta
+            directus_api("POST", "/items/pessoas", {
+                'telefone': telefone_limpo,
+                'data_primeiro_contato': 'now()',
+                'origem': 'whatsapp'
+            })
+            # Registra que perguntou
+            directus_api("POST", "/items/consentimento_log", {
+                'telefone': telefone_limpo,
+                'acao': 'perguntado',
+                'metodo': 'automatico',
+                'detalhes': 'Primeiro contato - consentimento solicitado'
+            })
+            return {'acao': 'perguntar', 'resposta': MENSAGEM_CONSENTIMENTO}
+    
+    except Exception as e:
+        print(f"[IA] Erro ao verificar consentimento: {e}")
+        # Em caso de erro, deixa passar (seguro)
+        return {'acao': 'autorizado'}
+
+
+# ==================================================================
+
+
 def buscar_base_conhecimento(texto: str, categoria: str = None) -> dict:
     """
     Busca na base de conhecimento do Directus a melhor resposta para o texto.
@@ -379,6 +510,36 @@ def processar_mensagem(remetente, texto, msg_id=0):
     6. Salva no Directus com status adequado
     7. Se auto-aprovado: envia via WAHA imediatamente
     """
+    # ==================================================================
+    #  CONSENTIMENTO: verificar se usuario autorizou contato
+    # ==================================================================
+    consentimento = verificar_consentimento(remetente, texto)
+    if consentimento['acao'] == 'bloquear':
+        print(f"[IA] CONSENTIMENTO: {remetente} recusou - ignorando mensagem")
+        return
+    if consentimento['acao'] == 'perguntar':
+        print(f"[IA] CONSENTIMENTO: perguntando para {remetente}")
+        data = {
+            "msg_original": texto,
+            "resposta_ia": consentimento['resposta'],
+            "resposta_final": consentimento['resposta'],
+            "classificacao": "consentimento",
+            "status": "pendente",
+            "confianca_ia": 100,
+            "auto_aprovado": False,
+            "nota": "CONSENTIMENTO - aguardando autorizacao do usuario"
+        }
+        directus_api("POST", "/items/respostas_pendentes", data)
+        # Em modo treino/teste, envia para testar
+        if remetente in NUMEROS_TESTE or remetente in FORMATOS_BGS:
+            enviar_resposta(remetente, consentimento['resposta'])
+        return
+    if consentimento['acao'] == 'resposta_sim':
+        print(f"[IA] CONSENTIMENTO: {remetente} AUTORIZOU! Processando mensagem...")
+    if consentimento['acao'] == 'resposta_nao':
+        print(f"[IA] CONSENTIMENTO: {remetente} RECUSOU")
+        return
+
     # ------------------------------------------------------------------
     #  TV/Radio: resposta automatica — MAS respeita MODO TREINO
     # ------------------------------------------------------------------
@@ -694,13 +855,20 @@ class IAListener(http.server.BaseHTTPRequestHandler):
             })
 
         elif self.path == "/ia/modo/toggle":
-            # Alterna modo treino (requer confirmacao)
+            # Alterna modo treino (requer confirmacao) — salva no SQLite
             acao_toggle = data.get("acao", "toggle")
             if acao_toggle == "set":
                 MODO_TREINO = data.get("valor", True)
             else:
                 MODO_TREINO = not MODO_TREINO
-            print(f"[IA] MODO TREINO alternado para: {MODO_TREINO}")
+            # Persiste no SQLite
+            import sqlite3
+            _c = sqlite3.connect("/home/catedral/directus/database/iurd360.db")
+            _c.execute("INSERT OR REPLACE INTO sys_config (chave, valor, atualizado_em) VALUES (?, ?, datetime('now', '-4 hours'))",
+                       ("modo_treino", str(MODO_TREINO).lower()))
+            _c.commit()
+            _c.close()
+            print(f"[IA] MODO TREINO alternado para: {MODO_TREINO} (persistido)")
             self._respond(200, {
                 "modo_treino": MODO_TREINO,
                 "status": "treino" if MODO_TREINO else "producao",
@@ -760,9 +928,88 @@ class IAListener(http.server.BaseHTTPRequestHandler):
         pass
 
 
-# ------------------------------------------------------------------
+# ==================================================================
+#  WATCHDOG DE ESCALONAMENTO (URGENTE → CRITICO)
+# ==================================================================
+# Verifica a cada 60s se ha mensagens urgentes sem resposta
+#   5 min sem resposta → notifica Bgs
+#  15 min sem resposta → vira critico (obriga humano)
+
+ESCALONAMENTO_5MIN = 300    # 5 minutos em segundos
+ESCALONAMENTO_15MIN = 900   # 15 minutos em segundos
+NUMERO_BGS_WAHA = "59178440354@c.us"  # Bgs no formato WAHA
+
+
+def watchdog_escalonamento():
+    """Thread que monitora respostas pendentes e escala urgencias."""
+    while True:
+        try:
+            # Busca mensagens pendentes classificadas como urgente/critico
+            result = directus_api("GET",
+                "/items/respostas_pendentes?filter=%7B%22status%22%3A%22pendente%22%7D&limit=50&sort[]=-id")
+            
+            if result and result.get('data'):
+                for item in result['data']:
+                    msg_id = item.get('id')
+                    classificacao = item.get('classificacao', '')
+                    nota = item.get('nota', '')
+                    
+                    # Ja escalado? ignora
+                    if '[ESCALADO_15MIN]' in nota or '[ESCALADO_5MIN]' in nota:
+                        continue
+                    
+                    # Pega timestamp
+                    from datetime import datetime as _dt
+                    criado_em = item.get('date_created', '')
+                    if not criado_em:
+                        continue
+                    
+                    try:
+                        criado = _dt.fromisoformat(criado_em.replace('Z', '+00:00'))
+                        agora = _dt.now()
+                        diff = (agora - criado).total_seconds()
+                    except:
+                        continue
+                    
+                    msg_curta = item.get('msg_original', '(sem texto)')[:80]
+                    
+                    # 15 minutos → critico (obriga acao humana)
+                    if diff > ESCALONAMENTO_15MIN and 'critico' not in classificacao:
+                        print(f"[WATCHDOG] ⚠️ ESCALONADO 15min: msg #{msg_id} - '{msg_curta}'")
+                        directus_api("PATCH", f"/items/respostas_pendentes/{msg_id}", {
+                            "classificacao": "critico",
+                            "nota": f"[ESCALADO_15MIN] Urgencia nao respondida em 15 min. {nota}"
+                        })
+                        # Notifica Bgs
+                        texto_aviso = f"⚠️ *URGENCIA NAO RESPONDIDA (15min)*\\n\\n'{msg_curta}'\\n\\nEntre no Directus e responda IMEDIATAMENTE."
+                        try:
+                            enviar_whatsapp.enviar(NUMERO_BGS_WAHA, texto_aviso)
+                            print(f"[WATCHDOG] Bgs notificado sobre msg #{msg_id}")
+                        except:
+                            pass
+                    
+                    # 5 minutos → notifica Bgs (se ainda nao notificou)
+                    elif diff > ESCALONAMENTO_5MIN and '[ESCALADO_5MIN]' not in nota:
+                        print(f"[WATCHDOG] ⚠️ 5min sem resposta: msg #{msg_id} - '{msg_curta}'")
+                        directus_api("PATCH", f"/items/respostas_pendentes/{msg_id}", {
+                            "nota": f"[ESCALADO_5MIN] {nota}"
+                        })
+                        texto_aviso = f"⚠️ *5min sem resposta:*\\n'{msg_curta}'\\n\\nEntre no painel para revisar."
+                        try:
+                            enviar_whatsapp.enviar(NUMERO_BGS_WAHA, texto_aviso)
+                            print(f"[WATCHDOG] Bgs notificado (5min) sobre msg #{msg_id}")
+                        except:
+                            pass
+            
+        except Exception as e:
+            print(f"[WATCHDOG] Erro: {e}")
+        
+        time.sleep(60)  # Verifica a cada 60s
+
+
+# ==================================================================
 #  Main
-# ------------------------------------------------------------------
+# ==================================================================
 
 def main():
     print(f"\n{'='*50}")
@@ -792,6 +1039,12 @@ def main():
     print(f"{'='*50}\n")
 
     server = http.server.HTTPServer(("0.0.0.0", PORT), IAListener)
+    
+    # Inicia watchdog de escalonamento em background
+    watchdog_thread = threading.Thread(target=watchdog_escalonamento, daemon=True)
+    watchdog_thread.start()
+    print(f"  🔄 Watchdog escalonamento: ativo (5min Bgs / 15min CRITICO)")
+    print()
 
     def shutdown(sig, frame):
         print("\n[IA] Desligando...")
