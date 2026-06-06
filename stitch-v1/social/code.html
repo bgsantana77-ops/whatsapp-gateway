@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ecclesia OS - Social Module</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#4edea3",
+                        "outline": "#909097",
+                        "tertiary": "#4edea3",
+                        "surface-dim": "#031427",
+                        "error-container": "#93000a",
+                        "primary-container": "#0f172a",
+                        "on-background": "#d3e4fe",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "surface-bright": "#2a3a4f",
+                        "inverse-surface": "#d3e4fe",
+                        "on-primary-fixed": "#131b2e",
+                        "on-secondary-fixed-variant": "#004c69",
+                        "on-error": "#690005",
+                        "surface-container-high": "#1b2b3f",
+                        "inverse-on-surface": "#213145",
+                        "secondary-container": "#00a6e0",
+                        "inverse-primary": "#565e74",
+                        "background": "#031427",
+                        "on-secondary": "#00354a",
+                        "surface-container-lowest": "#000f21",
+                        "on-tertiary-container": "#009365",
+                        "on-surface-variant": "#c6c6cd",
+                        "on-secondary-container": "#00374d",
+                        "surface-variant": "#26364a",
+                        "on-secondary-fixed": "#001e2c",
+                        "surface": "#031427",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#dae2fd",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-primary-container": "#798098",
+                        "on-surface": "#d3e4fe",
+                        "tertiary-container": "#001c10",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-primary": "#283044",
+                        "surface-tint": "#bec6e0",
+                        "surface-container": "#102034",
+                        "error": "#ffb4ab",
+                        "secondary": "#7bd0ff",
+                        "secondary-fixed-dim": "#7bd0ff",
+                        "surface-container-highest": "#26364a",
+                        "on-tertiary-fixed": "#002113",
+                        "primary": "#bec6e0",
+                        "secondary-fixed": "#c4e7ff",
+                        "on-tertiary": "#003824",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "surface-container-low": "#0b1c30",
+                        "outline-variant": "#45464d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "2xl": "48px",
+                        "3xl": "64px",
+                        "xs": "4px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Manrope"],
+                        "body-sm": ["Inter"],
+                        "headline-lg": ["Manrope"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "label-caps": ["JetBrains Mono"],
+                        "headline-xl": ["Manrope"],
+                        "data-mono": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(16, 32, 52, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(144, 144, 151, 0.2);
+        }
+        .chart-bar {
+            transition: height 1s ease-out;
+        }
+        .pulse-live {
+            animation: pulse-live 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-live {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .7; transform: scale(1.05); }
+        }
+        .scroll-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface-dim text-on-surface font-body-md selection:bg-secondary/30">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant flex flex-col h-full py-lg px-md z-50 hidden lg:flex">
+<div class="mb-2xl flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">church</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface leading-none">Ecclesia OS</h1>
+<p class="font-label-caps text-[10px] text-outline uppercase tracking-widest mt-1">Church Management</p>
+</div>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>Home</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">live_tv</span>
+<span>TV/Radio</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary font-bold border-r-2 border-secondary bg-surface-variant/30" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">share</span>
+<span>Social</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">settings_input_component</span>
+<span>System</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">forum</span>
+<span>Messages</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Configuration</span>
+</a>
+</nav>
+<button class="mt-xl bg-error-container text-white py-sm rounded-xl font-bold flex items-center justify-center gap-sm pulse-live">
+<span class="material-symbols-outlined">sensors</span>
+            Go Live
+        </button>
+<div class="mt-auto pt-lg border-t border-outline-variant space-y-xs">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-outline hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-outline hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 w-full lg:w-[calc(100%-280px)] bg-surface/80 backdrop-blur-md flex items-center justify-between px-lg h-16 z-40 border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline">search</span>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-full pl-10 pr-lg py-1.5 text-body-sm focus:ring-2 focus:ring-secondary focus:outline-none w-64" placeholder="Search social campaign..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<button class="text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined">rss_feed</span>
+</button>
+<div class="relative">
+<button class="text-on-surface-variant hover:text-secondary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</div>
+<div class="flex items-center gap-sm pl-md border-l border-outline-variant">
+<span class="font-body-sm font-medium text-on-surface hidden sm:block">Admin. Thomas</span>
+<img alt="User Profile" class="w-8 h-8 rounded-full border border-secondary shadow-sm" data-alt="A professional headshot of a middle-aged man with a friendly expression, wearing a tailored navy blue blazer. He is set against a blurred office background with cool cinematic lighting that matches the sophisticated corporate aesthetic of the app's dark mode UI. The lighting is crisp and clear, emphasizing professionalism and leadership." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDC6iNWfVg-oNptyFXa3jIuWtWVUa4BWxUzONH5UYIkQ3hlaJDMbQWes5Qc5DoYtPaGP4adM7ayhInqcIr57e30AtpKoAeBXFGeAXTVKF3BMXsaIuQJBMw0c7UwpoAs-wqx_j1ak9aE1XtaA9bfmxjzNNSyxxAqN6jz3FbsRaXXF_xXgStPunhHF2pWwadIGC9LQjqYEnb9-q-UgDzGAyQ7SWxJ32NvPJNX2LbpwDMP6L-Qn-8-T8LVRvapAxJBqQBc05nL2ESaJZ34"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="lg:ml-[280px] pt-24 pb-32 lg:pb-12 px-lg min-h-screen">
+<!-- Bento Grid Header / Dashboard -->
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-lg mb-xl">
+<!-- Performance Dashboard: 3 Bar charts -->
+<div class="col-span-1 md:col-span-2 lg:col-span-3 glass-card rounded-xl p-lg">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary">analytics</span>
+                        Performance Dashboard
+                    </h3>
+<div class="flex gap-xs">
+<button class="px-md py-1 rounded-full bg-secondary text-on-secondary font-label-caps text-[10px]">REACH</button>
+<button class="px-md py-1 rounded-full border border-outline-variant text-outline font-label-caps text-[10px] hover:border-secondary transition-colors">ENGAGEMENT</button>
+<button class="px-md py-1 rounded-full border border-outline-variant text-outline font-label-caps text-[10px] hover:border-secondary transition-colors">GROWTH</button>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-xl h-48">
+<!-- Facebook Chart -->
+<div class="flex flex-col h-full">
+<div class="flex-1 flex items-end gap-1.5 pb-2">
+<div class="chart-bar w-full bg-secondary/20 rounded-t-sm" style="height: 45%"></div>
+<div class="chart-bar w-full bg-secondary/40 rounded-t-sm" style="height: 65%"></div>
+<div class="chart-bar w-full bg-secondary rounded-t-sm" style="height: 90%"></div>
+<div class="chart-bar w-full bg-secondary/60 rounded-t-sm" style="height: 55%"></div>
+</div>
+<div class="pt-sm border-t border-outline-variant flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-blue-400">face_nod</span>
+<span class="font-label-caps text-[10px] text-outline">FACEBOOK</span>
+</div>
+</div>
+<!-- Instagram Chart -->
+<div class="flex flex-col h-full">
+<div class="flex-1 flex items-end gap-1.5 pb-2">
+<div class="chart-bar w-full bg-tertiary/20 rounded-t-sm" style="height: 30%"></div>
+<div class="chart-bar w-full bg-tertiary/40 rounded-t-sm" style="height: 80%"></div>
+<div class="chart-bar w-full bg-tertiary rounded-t-sm" style="height: 70%"></div>
+<div class="chart-bar w-full bg-tertiary/60 rounded-t-sm" style="height: 95%"></div>
+</div>
+<div class="pt-sm border-t border-outline-variant flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-pink-400">photo_camera</span>
+<span class="font-label-caps text-[10px] text-outline">INSTAGRAM</span>
+</div>
+</div>
+<!-- YouTube Chart -->
+<div class="flex flex-col h-full">
+<div class="flex-1 flex items-end gap-1.5 pb-2">
+<div class="chart-bar w-full bg-error/20 rounded-t-sm" style="height: 50%"></div>
+<div class="chart-bar w-full bg-error/40 rounded-t-sm" style="height: 40%"></div>
+<div class="chart-bar w-full bg-error rounded-t-sm" style="height: 60%"></div>
+<div class="chart-bar w-full bg-error/60 rounded-t-sm" style="height: 85%"></div>
+</div>
+<div class="pt-sm border-t border-outline-variant flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-red-500">play_circle</span>
+<span class="font-label-caps text-[10px] text-outline">YOUTUBE</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Calendar Widget -->
+<div class="glass-card rounded-xl p-lg col-span-1">
+<div class="flex items-center justify-between mb-md">
+<span class="font-headline-md text-headline-md">Oct 2024</span>
+<div class="flex gap-xs">
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-secondary">chevron_left</span>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-secondary">chevron_right</span>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-y-3 gap-x-1 text-center">
+<div class="font-label-caps text-[10px] text-outline">SU</div>
+<div class="font-label-caps text-[10px] text-outline">MO</div>
+<div class="font-label-caps text-[10px] text-outline">TU</div>
+<div class="font-label-caps text-[10px] text-outline">WE</div>
+<div class="font-label-caps text-[10px] text-outline">TH</div>
+<div class="font-label-caps text-[10px] text-outline">FR</div>
+<div class="font-label-caps text-[10px] text-outline">SA</div>
+<!-- Calendar days with post density dots -->
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span class="text-outline/40">28</span>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span class="text-outline/40">29</span>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span class="text-outline/40">30</span>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative bg-secondary/10 rounded-lg">
+<span class="font-bold">1</span>
+<div class="flex gap-[2px] mt-1"><span class="w-1 h-1 bg-secondary rounded-full"></span></div>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span>2</span>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span>3</span>
+<div class="flex gap-[2px] mt-1"><span class="w-1 h-1 bg-secondary rounded-full"></span><span class="w-1 h-1 bg-tertiary rounded-full"></span></div>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span>4</span>
+</div>
+<!-- Row 2 -->
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span>5</span>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span>6</span>
+<div class="flex gap-[2px] mt-1"><span class="w-1 h-1 bg-error rounded-full"></span></div>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative bg-secondary rounded-lg text-on-secondary">
+<span class="font-bold">7</span>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span>8</span>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span>9</span>
+<div class="flex gap-[2px] mt-1"><span class="w-1 h-1 bg-secondary rounded-full"></span><span class="w-1 h-1 bg-secondary rounded-full"></span></div>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span>10</span>
+</div>
+<div class="h-8 flex flex-col items-center justify-center relative">
+<span>11</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Section -->
+<div class="flex flex-col lg:flex-row gap-lg">
+<!-- Feed Timeline -->
+<div class="flex-1 space-y-lg">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-md text-headline-md">Active Feed</h2>
+<div class="flex gap-md">
+<button class="flex items-center gap-xs text-outline font-body-sm"><span class="material-symbols-outlined text-[20px]">tune</span> Filter</button>
+</div>
+</div>
+<!-- Post 1 -->
+<article class="glass-card rounded-xl overflow-hidden shadow-lg transition-transform hover:-translate-y-1">
+<div class="p-md flex items-center justify-between">
+<div class="flex items-center gap-md">
+<img class="w-10 h-10 rounded-full border-2 border-surface-variant" data-alt="A portrait of a serene young woman in a high-tech studio setting, looking thoughtfully into the distance. The lighting is dominated by neon blues and soft cyan, reflecting a futuristic, digital ministry aesthetic. Her expression is inspired and calm, perfectly aligning with the high-energy yet authoritative tone of the church management platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChI2wiplkjKA9um2-N0ITTpvLw30RrxYUagtiPzxVjFwLPjVMcjsGke9ovT0VGbigJEe3jRBjL8-M_ShgiC8E0qs6pJN3TbIKLsIMsOIbuHCxdf-3fBeggGfGbRe1JPevKsJQs7fuLVFrzJydtPE4UrfJyfGzCRhNR2OKLjKAlGwoK3yxKgLcEvMfgsxCEveOJ6kovd2cUH1aja4wea1z0rQY88QwlQtKpt4aAA9xVpbhb4v5-YpfRDznrb9sTSWzvZUok3IOD4fJ-"/>
+<div>
+<h4 class="font-body-md font-bold text-on-surface">Digital Ministry Team</h4>
+<span class="font-label-caps text-[10px] text-outline">POSTED 2H AGO • FACEBOOK</span>
+</div>
+</div>
+<button class="text-outline hover:text-on-surface">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="px-md pb-md">
+<p class="text-body-md mb-md text-on-surface-variant">
+                            "Therefore go and make disciples of all nations..." 🌍 Join us for our live stream tonight as we discuss the impact of digital connection in the modern age. #EcclesiaLive #Community
+                        </p>
+<img alt="Post Image" class="w-full h-72 object-cover rounded-lg" data-alt="A large, vibrant church congregation gathered in a modern auditorium with dramatic stage lighting. Beams of light in deep blue and purple illuminate the space, creating a high-energy and spiritual atmosphere. The shot is wide, showing the scale of the community engagement. The visual style is crisp and professional, fitting for a premium dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAul720B7oTdUp78VwPwAv-xqGKjZSfN7HF25NY5Q8UP-SdFwq9DffPVXiB5hHLgL9RsErWHqRwCBEaY1jW4fvlQtNU5srlPzUpcmdR60mkAyT7bXbxDuej0kTzZcKBZayu3eukMeTQ0_0zXMa7hzlDDsNSVURFnXAT3Y31cNGfUkS98fE70l3d3Ho2mCCSj5aheTCbUwUQdbDOd9jzR0h3VHeWVH6rTnlS5gU7izd-jygCzJqm0SMZ3cyGMZz0OMQ2gGBKZ8Rf2ASG"/>
+</div>
+<div class="p-md border-t border-outline-variant flex items-center justify-between bg-surface-container-low/50">
+<div class="flex gap-lg">
+<div class="flex items-center gap-sm text-outline">
+<span class="material-symbols-outlined text-[20px] text-secondary">favorite</span>
+<span class="font-data-mono text-body-sm">2.4k</span>
+</div>
+<div class="flex items-center gap-sm text-outline">
+<span class="material-symbols-outlined text-[20px]">chat_bubble</span>
+<span class="font-data-mono text-body-sm">128</span>
+</div>
+<div class="flex items-center gap-sm text-outline">
+<span class="material-symbols-outlined text-[20px]">share</span>
+<span class="font-data-mono text-body-sm">45</span>
+</div>
+</div>
+<div class="text-tertiary flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+<span class="font-label-caps text-[10px]">+12% vs last post</span>
+</div>
+</div>
+</article>
+<!-- Post 2 -->
+<article class="glass-card rounded-xl overflow-hidden shadow-lg transition-transform hover:-translate-y-1">
+<div class="p-md flex items-center justify-between">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed-dim flex items-center justify-center text-on-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<div>
+<h4 class="font-body-md font-bold text-on-surface">Volunteer Network</h4>
+<span class="font-label-caps text-[10px] text-outline">SCHEDULED • INSTAGRAM</span>
+</div>
+</div>
+<span class="px-md py-1 rounded-full bg-tertiary/10 text-tertiary font-label-caps text-[10px]">READY</span>
+</div>
+<div class="px-md pb-md">
+<p class="text-body-md mb-md text-on-surface-variant">
+                            Celebrating our Sunday volunteers! Your dedication is the heartbeat of this house. Let's show some love in the comments! 💙 #ServantLeadership #ChurchLife
+                        </p>
+</div>
+<div class="p-md border-t border-outline-variant flex items-center justify-between bg-surface-container-low/50">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-outline">calendar_month</span>
+<span class="font-body-sm text-outline">Scheduled for Oct 12, 09:00 AM</span>
+</div>
+<button class="text-secondary font-bold text-body-sm flex items-center gap-xs">
+                            Edit Post <span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Side Quick Actions / Stats -->
+<div class="w-full lg:w-80 space-y-lg">
+<div class="glass-card rounded-xl p-lg sticky top-24">
+<h3 class="font-headline-md text-headline-md mb-md">Campaign Status</h3>
+<div class="space-y-md">
+<div class="p-md bg-surface-container-highest/50 rounded-lg border-l-4 border-secondary">
+<div class="flex justify-between mb-2">
+<span class="font-label-caps text-[10px] text-outline">ANNUAL GALA</span>
+<span class="font-data-mono text-body-sm text-secondary">82%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary" style="width: 82%"></div>
+</div>
+</div>
+<div class="p-md bg-surface-container-highest/50 rounded-lg border-l-4 border-tertiary">
+<div class="flex justify-between mb-2">
+<span class="font-label-caps text-[10px] text-outline">YOUTH RETREAT</span>
+<span class="font-data-mono text-body-sm text-tertiary">45%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-tertiary" style="width: 45%"></div>
+</div>
+</div>
+<div class="p-md bg-surface-container-highest/50 rounded-lg border-l-4 border-amber-400">
+<div class="flex justify-between mb-2">
+<span class="font-label-caps text-[10px] text-outline">DIGITAL TITHING</span>
+<span class="font-data-mono text-body-sm text-amber-400">29%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-amber-400" style="width: 29%"></div>
+</div>
+</div>
+</div>
+<div class="mt-xl pt-lg border-t border-outline-variant">
+<h4 class="font-label-caps text-on-surface mb-md">PLATFORM CONNECTIVITY</h4>
+<div class="flex justify-around">
+<div class="text-center">
+<div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 mb-2 mx-auto">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-label-caps text-[9px] text-outline">FB</span>
+</div>
+<div class="text-center">
+<div class="w-10 h-10 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-500 mb-2 mx-auto">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-label-caps text-[9px] text-outline">IG</span>
+</div>
+<div class="text-center">
+<div class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-2 mx-auto">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<span class="font-label-caps text-[9px] text-outline">YT</span>
+</div>
+<div class="text-center opacity-40 grayscale">
+<div class="w-10 h-10 rounded-full bg-sky-400/10 flex items-center justify-center text-sky-400 mb-2 mx-auto">
+<span class="material-symbols-outlined">add_circle</span>
+</div>
+<span class="font-label-caps text-[9px] text-outline">X</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Post Scheduler Quick Action FAB -->
+<button class="fixed bottom-24 right-lg lg:bottom-12 lg:right-12 w-16 h-16 rounded-full bg-secondary text-on-secondary shadow-2xl flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all duration-300" id="fab-scheduler">
+<span class="material-symbols-outlined text-[32px]">add_task</span>
+<div class="absolute -top-1 -right-1 w-6 h-6 bg-error rounded-full flex items-center justify-center border-2 border-surface shadow-sm">
+<span class="font-data-mono text-[10px] font-bold">3</span>
+</div>
+</button>
+<!-- Bottom Navigation Bar (Mobile) -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-highest border-t border-outline-variant z-50 rounded-t-xl shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-[10px]">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="font-label-caps text-[10px]">Live</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full p-2" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+<span class="font-label-caps text-[10px]">Social</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">mail</span>
+<span class="font-label-caps text-[10px]">Inbox</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">menu</span>
+<span class="font-label-caps text-[10px]">Menu</span>
+</a>
+</nav>
+<!-- Footer for Metadata -->
+<footer class="lg:ml-[280px] w-full py-md flex justify-between items-center px-lg border-t border-outline-variant bg-surface-dim text-outline font-body-sm">
+<p>© 2024 Ecclesia OS. System v2.4.0</p>
+<div class="flex gap-lg">
+<span class="flex items-center gap-sm text-tertiary">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+                System Health: Operational
+            </span>
+<a class="hover:text-on-surface transition-colors" href="#">Terms</a>
+<a class="hover:text-on-surface transition-colors" href="#">Privacy</a>
+</div>
+</footer>
+<script>
+        // Micro-interaction for charts on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const bars = document.querySelectorAll('.chart-bar');
+            bars.forEach(bar => {
+                const targetHeight = bar.style.height;
+                bar.style.height = '0%';
+                setTimeout(() => {
+                    bar.style.height = targetHeight;
+                }, 200);
+            });
+        });
+
+        // FAB Click Interaction
+        const fab = document.getElementById('fab-scheduler');
+        fab.addEventListener('click', () => {
+            fab.classList.add('rotate-90');
+            setTimeout(() => {
+                alert('Initializing Post Scheduler Wizard...');
+                fab.classList.remove('rotate-90');
+            }, 300);
+        });
+    </script>
+</body></html>

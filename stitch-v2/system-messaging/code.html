@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ultimate System Dashboard | IURD Bolívia</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-heartbeat { animation: heartbeat 2s infinite ease-in-out; }
+        .glass-panel { backdrop-filter: blur(12px); background-color: rgba(3, 20, 39, 0.7); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #45464d; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #909097; }
+        .tab-active { border-bottom: 2px solid #7bd0ff; color: #7bd0ff; }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#00354a",
+                    "on-secondary-fixed-variant": "#004c69",
+                    "surface-container": "#102034",
+                    "on-primary-container": "#798098",
+                    "primary-container": "#0f172a",
+                    "inverse-on-surface": "#213145",
+                    "on-surface-variant": "#c6c6cd",
+                    "tertiary": "#4edea3",
+                    "outline": "#909097",
+                    "on-tertiary-container": "#009365",
+                    "on-surface": "#d3e4fe",
+                    "surface-container-low": "#0b1c30",
+                    "outline-variant": "#45464d",
+                    "inverse-primary": "#565e74",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-dim": "#031427",
+                    "on-tertiary": "#003824",
+                    "on-error-container": "#ffdad6",
+                    "background": "#031427",
+                    "primary-fixed-dim": "#bec6e0",
+                    "inverse-surface": "#d3e4fe",
+                    "surface": "#031427",
+                    "secondary-container": "#00a6e0",
+                    "secondary": "#7bd0ff",
+                    "primary": "#bec6e0",
+                    "primary-fixed": "#dae2fd",
+                    "on-primary": "#283044",
+                    "error": "#ffb4ab",
+                    "surface-bright": "#2a3a4f",
+                    "on-secondary-fixed": "#001e2c",
+                    "surface-container-high": "#1b2b3f",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "surface-variant": "#26364a",
+                    "secondary-fixed-dim": "#7bd0ff",
+                    "on-primary-fixed": "#131b2e",
+                    "on-background": "#d3e4fe",
+                    "surface-tint": "#bec6e0",
+                    "on-secondary-container": "#00374d",
+                    "tertiary-container": "#001c10",
+                    "secondary-fixed": "#c4e7ff",
+                    "on-error": "#690005",
+                    "surface-container-lowest": "#000f21",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "surface-container-highest": "#26364a",
+                    "error-container": "#93000a"
+            },
+            "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+            "spacing": { "xs": "4px", "2xl": "48px", "xl": "32px", "sm": "8px", "lg": "24px", "unit": "4px", "md": "16px", "3xl": "64px" },
+            "fontFamily": { "headline-lg": ["Manrope"], "body-lg": ["Inter"], "body-sm": ["Inter"], "body-md": ["Inter"], "label-caps": ["JetBrains Mono"], "data-mono": ["JetBrains Mono"], "headline-xl": ["Manrope"], "headline-lg-mobile": ["Manrope"], "headline-md": ["Manrope"] },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-secondary/30 custom-scrollbar overflow-x-hidden">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant shadow-sm flex flex-col py-lg px-md hidden md:flex z-50">
+<div class="flex items-center gap-sm mb-3xl px-xs">
+<div class="w-10 h-10 bg-secondary rounded flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface leading-tight">IURD Bolívia</h1>
+<p class="font-body-sm text-body-sm text-outline">Gestión Centralizada</p>
+</div>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined">dashboard</span> Panel Central
+        </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined">podcasts</span> TV &amp; Radio Alvorada
+        </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg bg-transparent text-secondary font-bold border-r-2 border-secondary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dns</span> Infraestructura
+        </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#messages">
+<span class="material-symbols-outlined">mail_lock</span> Mensajería &amp; Aprobaciones
+            <span class="ml-auto bg-error text-on-error px-2 py-0.5 rounded-full text-[10px]">10</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#locations">
+<span class="material-symbols-outlined">location_city</span> Sedes y Catedrales
+        </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined">settings_suggest</span> Configuración
+        </a>
+</nav>
+<div class="mt-auto space-y-xs border-t border-outline-variant pt-lg">
+<div class="bg-surface-container p-md rounded-lg mb-md">
+<p class="text-[10px] text-outline uppercase font-bold mb-xs">IURD AI Assistant</p>
+<p class="text-[11px] text-on-surface-variant italic">"Se sugiere optimizar el nodo Santa Cruz 03 por latencia de red."</p>
+</div>
+<a class="flex items-center gap-md px-md py-sm text-outline hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">help</span> Soporte Técnico
+        </a>
+<a class="flex items-center gap-md px-md py-sm text-outline hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span> Cerrar Sesión
+        </a>
+</div>
+</aside>
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 right-0 w-full md:w-[calc(100%-280px)] h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant shadow-sm flex items-center justify-between px-lg z-40">
+<div class="flex items-center gap-md">
+<h2 class="font-headline-md text-headline-md text-on-surface hidden sm:block">Estado del Sistema IURD</h2>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-md">
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-secondary cursor-pointer transition-colors">notifications</span>
+<span class="absolute -top-1 -right-1 w-3 h-3 bg-error rounded-full border-2 border-surface animate-pulse"></span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-xs font-bold text-secondary">IB</div>
+<span class="font-body-sm text-body-sm text-on-surface hidden lg:block">Admin IURD</span>
+</div>
+</div>
+<div class="hidden sm:block">
+<p class="font-label-caps text-label-caps text-tertiary">SISTEMA: OPERATIVO</p>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="pt-24 pb-20 md:pb-8 pl-4 md:pl-[304px] pr-4 md:pr-8 min-h-screen">
+<!-- Section 1: System Health & Infrastructure -->
+<div class="mb-xl flex items-center justify-between">
+<div>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">Infraestructura IURD Bolívia</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Monitoreo en tiempo real de nodos nacionales y redundancia.</p>
+</div>
+<button class="bg-secondary text-on-secondary px-lg py-sm rounded-lg font-bold flex items-center gap-sm hover:opacity-90 active:scale-95 transition-all shadow-lg">
+<span class="material-symbols-outlined">terminal</span> Consola de Emergencia
+        </button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-xl">
+<!-- High-Density Disk & Network Metrics -->
+<div class="lg:col-span-4 bg-surface-container border border-outline-variant rounded-xl p-lg flex flex-col">
+<div class="flex justify-between items-start mb-lg">
+<h3 class="font-label-caps text-label-caps text-outline">CAPACIDAD DE ALMACENAMIENTO (DATACENTER LA PAZ)</h3>
+<span class="text-[10px] text-tertiary font-bold">NVMe RAID 10</span>
+</div>
+<div class="flex-1 flex flex-col items-center justify-center py-md">
+<canvas class="max-w-[200px] max-h-[200px]" id="diskChart"></canvas>
+<div class="mt-lg text-center">
+<p class="font-headline-xl text-headline-xl text-on-surface">4.8 TB <span class="text-lg text-outline">/ 6.4 TB</span></p>
+<p class="font-label-caps text-label-caps text-secondary">75% CONSUMIDO</p>
+</div>
+</div>
+<div class="mt-md grid grid-cols-2 gap-sm">
+<div class="bg-surface-container-low p-sm rounded border border-outline-variant">
+<p class="text-[10px] text-outline uppercase font-bold">Sede Central (Read)</p>
+<p class="font-data-mono text-secondary">1.2 GB/s</p>
+</div>
+<div class="bg-surface-container-low p-sm rounded border border-outline-variant">
+<p class="text-[10px] text-outline uppercase font-bold">Cloud Backup (Write)</p>
+<p class="font-data-mono text-tertiary">450 MB/s</p>
+</div>
+</div>
+</div>
+<!-- Real-Time High-Density Logs -->
+<div class="lg:col-span-8 bg-surface-container border border-outline-variant rounded-xl p-lg flex flex-col h-[420px]">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-label-caps text-label-caps text-outline">CRONOLOGÍA DE EVENTOS - INFRAESTRUCTURA</h3>
+<div class="flex gap-sm">
+<button class="text-[10px] bg-surface-variant px-2 py-0.5 rounded text-on-surface-variant hover:bg-secondary hover:text-on-secondary transition-colors">EXPORTAR LOG</button>
+<span class="text-[10px] bg-tertiary/10 text-tertiary border border-tertiary/20 px-2 py-0.5 rounded font-bold animate-pulse">LIVE STREAM</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar space-y-md pr-md font-data-mono text-sm">
+<div class="flex gap-md border-l-2 border-tertiary pl-md py-xs relative">
+<div class="absolute -left-[7px] top-4 w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="text-outline w-20 shrink-0">16:45:02</span>
+<div class="flex-1">
+<p class="text-on-surface"><span class="text-tertiary font-bold">[INFO]</span> Nodo Santa Cruz (Equipetrol): Replicación exitosa con Central La Paz.</p>
+<p class="text-xs text-outline-variant italic">Latency: 12ms | Packet Loss: 0.00%</p>
+</div>
+</div>
+<div class="flex gap-md border-l-2 border-secondary pl-md py-xs relative">
+<div class="absolute -left-[7px] top-4 w-3 h-3 rounded-full bg-secondary"></div>
+<span class="text-outline w-20 shrink-0">16:42:15</span>
+<div class="flex-1">
+<p class="text-on-surface"><span class="text-secondary font-bold">[WARN]</span> Nodo El Alto: Incremento inusual en peticiones de Video Stream.</p>
+<p class="text-xs text-outline-variant italic">Traffic Spike: +45% | Source: App IURD TV</p>
+</div>
+</div>
+<div class="flex gap-md border-l-2 border-error pl-md py-xs relative">
+<div class="absolute -left-[7px] top-4 w-3 h-3 rounded-full bg-error"></div>
+<span class="text-outline w-20 shrink-0">16:38:55</span>
+<div class="flex-1">
+<p class="text-error font-bold">[CRITICAL] Nodo Cochabamba (Catedral): Fallo de conexión eléctrica detectado.</p>
+<p class="text-xs text-on-surface-variant">Activando UPS y Generador de Respaldo automático. Notificación enviada a mantenimiento.</p>
+</div>
+</div>
+<div class="flex gap-md border-l-2 border-outline-variant pl-md py-xs relative">
+<div class="absolute -left-[7px] top-4 w-3 h-3 rounded-full bg-outline-variant"></div>
+<span class="text-outline w-20 shrink-0">16:35:10</span>
+<div class="flex-1">
+<p class="text-on-surface-variant"><span class="text-outline font-bold">[DEBUG]</span> Backup diario: 85% completado para DB_MIEMBROS_NACIONAL.</p>
+</div>
+</div>
+<div class="flex gap-md border-l-2 border-tertiary pl-md py-xs relative opacity-70">
+<div class="absolute -left-[7px] top-4 w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="text-outline w-20 shrink-0">16:30:01</span>
+<div class="flex-1">
+<p class="text-on-surface-variant">Auth_Service_IB: Rotación de llaves de cifrado SSL para subdominios iurd.org.bo.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 15 Core Nodes -->
+<h3 class="font-label-caps text-label-caps text-outline mb-md">SERVICIOS CORE - INFRAESTRUCTURA IURD BOLÍVIA</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-md mb-xl">
+<script>
+            const iurdServices = [
+                { name: 'Gateway La Paz', health: 'healthy', log: '200 OK | Load 12%' },
+                { name: 'DB Central Member', health: 'healthy', log: 'Replica Sync: Active' },
+                { name: 'Stream Catedral', health: 'warning', log: 'Jitter detectado: 45ms' },
+                { name: 'App Movil IURD', health: 'healthy', log: 'v3.1.0 Establo' },
+                { name: 'TV Alvorada Sat', health: 'healthy', log: 'Uplink: 15 Mbps' },
+                { name: 'Donaciones Web', health: 'healthy', log: 'Seguridad: SSL valid' },
+                { name: 'Radio Red Nac', health: 'critical', log: 'Cochabamba Down' },
+                { name: 'Auth Biometric', health: 'healthy', log: 'Nodes: 42 active' },
+                { name: 'Inventory Asset', health: 'healthy', log: 'Last Audit: Yesterday' },
+                { name: 'Internal Mail', health: 'healthy', log: 'Queue: 0 items' },
+                { name: 'CDN Potosí', health: 'healthy', log: 'Cache hit: 92%' },
+                { name: 'VOD Oruro', health: 'warning', log: 'Disk at 88%' },
+                { name: 'Audit Tracker', health: 'healthy', log: 'Logs encrypting' },
+                { name: 'Admin Portal IB', health: 'healthy', log: 'Session: Admin_01' },
+                { name: 'Backup Tarija', health: 'healthy', log: 'Sync: Scheduled' }
+            ];
+
+            const srvGrid = document.currentScript.parentElement;
+            iurdServices.forEach(s => {
+                const colorClass = s.health === 'healthy' ? 'bg-tertiary' : (s.health === 'warning' ? 'bg-secondary' : 'bg-error');
+                const badgeText = s.health === 'healthy' ? 'OPERATIVO' : (s.health === 'warning' ? 'DEGRADADO' : 'FALLO');
+                srvGrid.insertAdjacentHTML('beforeend', `
+                    <div class="bg-surface-container border border-outline-variant rounded-xl p-md flex flex-col gap-sm hover:scale-[1.02] transition-all shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-body-sm font-bold text-on-surface truncate">${s.name}</h4>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full ${colorClass} ${s.health !== 'healthy' ? 'animate-pulse' : ''}"></span>
+                                <span class="text-[10px] text-outline font-bold uppercase">${badgeText}</span>
+                            </div>
+                        </div>
+                        <div class="bg-surface-container-lowest rounded p-2 border border-outline-variant/30">
+                            <p class="font-data-mono text-[10px] text-outline-variant truncate">${s.log}</p>
+                        </div>
+                        <div class="mt-xs flex gap-xs">
+                             <button class="flex-1 py-1 border border-outline-variant rounded text-[10px] font-bold text-on-surface hover:bg-surface-variant transition-colors">REINICIAR</button>
+                             <button class="p-1 border border-outline-variant rounded text-on-surface hover:bg-surface-variant"><span class="material-symbols-outlined text-sm">settings</span></button>
+                        </div>
+                    </div>
+                `);
+            });
+        </script>
+</div>
+<!-- Section 2: Messages & Approvals Hub -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-xl" id="messages">
+<div class="lg:col-span-8 bg-surface-container border border-outline-variant rounded-xl flex flex-col overflow-hidden">
+<div class="px-lg py-md border-b border-outline-variant flex justify-between items-center bg-surface-container-low">
+<div>
+<h3 class="font-label-caps text-label-caps text-outline">COLA DE MENSAJES Y APROBACIONES (10 PENDIENTES)</h3>
+<p class="text-[10px] text-outline-variant">Revisión de solicitudes nacionales IURD Bolívia</p>
+</div>
+<div class="flex gap-sm">
+<button class="text-xs bg-secondary text-on-secondary px-3 py-1 rounded-full font-bold">APROBAR TODO</button>
+</div>
+</div>
+<div class="divide-y divide-outline-variant/30">
+<script>
+                    const messages = [
+                        { from: 'Pr. Marcelo Silva', loc: 'Catedral La Paz', msg: 'Solicitud urgente de reparaciones en fachada principal.', cat: 'Mantenimiento', time: '10m ago' },
+                        { from: 'Cba. Jorge Rios', loc: 'Sede Cochabamba', msg: 'Informe de donaciones semanales para auditoría central.', cat: 'Finanzas', time: '25m ago' },
+                        { from: 'Sra. Elena Vargas', loc: 'Social - Santa Cruz', msg: 'Requerimiento de 200 kits escolares para evento el domingo.', cat: 'Social', time: '1h ago' },
+                        { from: 'Pr. Fabio Mendes', loc: 'Radio Alvorada', msg: 'Aprobación para compra de nuevos transmisores FM.', cat: 'Infraestructura', time: '2h ago' },
+                        { from: 'Admin El Alto', loc: 'Nodo El Alto', msg: 'Alerta de intrusión detectada en servidor de cámaras.', cat: 'Seguridad', time: '3h ago' },
+                        { from: 'Pr. Carlos Ortiz', loc: 'Sede Sucre', msg: 'Solicitud de traslado de obreros para vigilia mensual.', cat: 'Personal', time: '4h ago' },
+                        { from: 'Cba. Maria Luna', loc: 'Sede Potosí', msg: 'Actualización de base de datos de miembros consolidada.', cat: 'Data', time: '5h ago' },
+                        { from: 'Secretaria Oruro', loc: 'Catedral Oruro', msg: 'Revisión de contrato de alquiler salón anexo.', cat: 'Legal', time: '6h ago' },
+                        { from: 'Pr. Juan Paco', loc: 'Beni Regional', msg: 'Reporte de daños por lluvia en techo del templo.', cat: 'Mantenimiento', time: '8h ago' },
+                        { from: 'Admin Red Nac', loc: 'Control Central', msg: 'Cierre de mes fiscal: Revisión de balances requerida.', cat: 'Finanzas', time: '12h ago' }
+                    ];
+
+                    const msgList = document.currentScript.parentElement;
+                    messages.forEach(m => {
+                        msgList.insertAdjacentHTML('beforeend', `
+                            <div class="p-md hover:bg-surface-variant/20 transition-colors flex items-start gap-md group">
+                                <div class="w-10 h-10 rounded-full bg-surface-container-high flex-shrink-0 flex items-center justify-center font-bold text-secondary border border-outline-variant">
+                                    ${m.from.charAt(0)}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between mb-0.5">
+                                        <h5 class="text-sm font-bold text-on-surface">${m.from} <span class="text-outline font-normal">(${m.loc})</span></h5>
+                                        <span class="text-[10px] text-outline">${m.time}</span>
+                                    </div>
+                                    <p class="text-xs text-on-surface-variant line-clamp-1 mb-md">${m.msg}</p>
+                                    <div class="flex gap-sm">
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-surface-variant text-on-surface-variant font-bold uppercase">${m.cat}</span>
+                                        <button class="text-[10px] text-tertiary font-bold hover:underline">APROBAR</button>
+                                        <button class="text-[10px] text-error font-bold hover:underline">RECHAZAR</button>
+                                        <button class="text-[10px] text-outline font-bold hover:underline">DETALLES</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    });
+                </script>
+</div>
+</div>
+<!-- Advanced Audit Sidebar -->
+<div class="lg:col-span-4 bg-surface-container border border-outline-variant rounded-xl p-lg flex flex-col">
+<h3 class="font-label-caps text-label-caps text-outline mb-md">AUDITORÍA INTELIGENTE (AI)</h3>
+<div class="space-y-lg">
+<div class="p-md bg-secondary/10 border border-secondary/20 rounded-lg">
+<p class="text-xs font-bold text-secondary mb-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">psychology</span> Sugerencia del Sistema
+                    </p>
+<p class="text-xs text-on-surface-variant leading-relaxed">Detectada inconsistencia en reportes de Cochabamba vs El Alto. Se recomienda auditoría física en Nodo 05.</p>
+</div>
+<div>
+<p class="text-[10px] font-bold text-outline uppercase mb-md">GAPS DE CUMPLIMIENTO</p>
+<ul class="space-y-md">
+<li class="flex items-center gap-md">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<div class="flex-1">
+<p class="text-xs text-on-surface font-bold">Certificados Digitales (Beni)</p>
+<div class="w-full h-1 bg-surface-variant rounded-full mt-1">
+<div class="bg-error w-[15%] h-full rounded-full"></div>
+</div>
+</div>
+</li>
+<li class="flex items-center gap-md">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<div class="flex-1">
+<p class="text-xs text-on-surface font-bold">Actualización de Inventario (Oruro)</p>
+<div class="w-full h-1 bg-surface-variant rounded-full mt-1">
+<div class="bg-secondary w-[65%] h-full rounded-full"></div>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div class="mt-auto">
+<button class="w-full py-2 bg-surface-variant text-on-surface font-bold text-xs rounded-lg hover:bg-outline-variant transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">assessment</span> GENERAR REPORTE COMPLETO
+                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 3: Configuration & Locations -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden mb-xl" id="locations">
+<div class="px-lg py-md border-b border-outline-variant flex flex-col md:flex-row md:items-center justify-between gap-md bg-surface-container-low">
+<div>
+<h3 class="font-label-caps text-label-caps text-outline">GESTIÓN DE SEDES - IURD BOLÍVIA (38 TOTAL)</h3>
+<p class="text-[10px] text-outline-variant">Matriz de Configuración y Umbrales de Alerta por Sede</p>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-xs text-outline">search</span>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg pl-8 pr-4 py-1 text-xs focus:ring-1 focus:ring-secondary outline-none w-48" placeholder="Filtrar por ciudad..." type="text"/>
+</div>
+<button class="bg-tertiary text-on-tertiary px-4 py-1 rounded font-bold text-xs">AGREGAR SEDE</button>
+</div>
+</div>
+<div class="max-h-[500px] overflow-y-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low sticky top-0 z-10">
+<tr class="text-[10px] text-outline uppercase font-bold">
+<th class="px-lg py-sm border-b border-outline-variant">ID Sede</th>
+<th class="px-lg py-sm border-b border-outline-variant">Ciudad / Ubicación</th>
+<th class="px-lg py-sm border-b border-outline-variant">Personal</th>
+<th class="px-lg py-sm border-b border-outline-variant">Umbral Alerta</th>
+<th class="px-lg py-sm border-b border-outline-variant">Notif. SMS</th>
+<th class="px-lg py-sm border-b border-outline-variant text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20">
+<script>
+                        const locs = [
+                            'Catedral La Paz', 'Sede El Alto 01', 'Sede El Alto 02', 'Catedral Santa Cruz', 'Equipetrol SC', 'Plan 3000 SC', 
+                            'Catedral Cochabamba', 'Sede Quillacollo', 'Sacaba Regional', 'Sucre Central', 'Sede Potosí', 'Oruro Catedral', 
+                            'Tarija Central', 'Beni Regional', 'Pando Sede', 'Montero SC', 'Camiri SC', 'Viacha LP', 'Patacamaya LP', 
+                            'Warnes SC', 'Cotoca SC', 'Yacuiba TJ', 'Villamontes TJ', 'Tupiza PT', 'Uyuni PT', 'Llallagua PT', 
+                            'Chulumani LP', 'Caranavi LP', 'Guayaramerín BN', 'Riberalta BN', 'Cobija Central', 'Roboré SC', 
+                            'Puerto Suárez SC', 'San Ignacio SC', 'Vallegrande SC', 'Punata CB', 'Cliza CB', 'Villa Tunari CB'
+                        ];
+
+                        const tbody = document.currentScript.parentElement;
+                        locs.forEach((name, i) => {
+                            const staff = Math.floor(Math.random() * 25) + 5;
+                            const threshold = Math.floor(Math.random() * 40) + 60;
+                            tbody.insertAdjacentHTML('beforeend', `
+                                <tr class="hover:bg-secondary/5 transition-colors text-xs">
+                                    <td class="px-lg py-2.5 font-data-mono text-outline">IB-LOC-0${(i+1).toString().padStart(2, '0')}</td>
+                                    <td class="px-lg py-2.5 font-bold text-on-surface">${name}</td>
+                                    <td class="px-lg py-2.5 text-on-surface-variant">${staff} Obreros</td>
+                                    <td class="px-lg py-2.5">
+                                        <div class="flex items-center gap-2">
+                                            <input type="range" class="w-20 h-1.5 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-secondary" value="${threshold}">
+                                            <span class="text-[10px] font-data-mono text-outline">${threshold}%</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-lg py-2.5">
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" value="" class="sr-only peer" ${Math.random() > 0.3 ? 'checked' : ''}>
+                                            <div class="w-7 h-4 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-secondary"></div>
+                                        </label>
+                                    </td>
+                                    <td class="px-lg py-2.5 text-right">
+                                        <button class="material-symbols-outlined text-outline hover:text-secondary text-lg">edit</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    </script>
+</tbody>
+</table>
+</div>
+</div>
+<!-- DB Cluster Detail (46 Nodes) -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden mb-xl">
+<div class="px-lg py-md border-b border-outline-variant flex items-center justify-between">
+<h3 class="font-label-caps text-label-caps text-outline">CLUSTER DE BASE DE DATOS (46 NODES)</h3>
+<div class="flex gap-lg">
+<div class="text-right"><p class="text-[10px] text-outline font-bold">LATENCIA PROM.</p><p class="font-data-mono text-tertiary">14ms</p></div>
+<div class="text-right"><p class="text-[10px] text-outline font-bold">UPTIME GLOBAL</p><p class="font-data-mono text-secondary">99.99%</p></div>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 xl:grid-cols-12 gap-1 p-2 bg-surface-container-low">
+<script>
+                const dbGrid = document.currentScript.parentElement;
+                for(let i=1; i<=46; i++) {
+                    const status = Math.random() > 0.1 ? 'bg-tertiary' : (Math.random() > 0.5 ? 'bg-secondary' : 'bg-error');
+                    dbGrid.insertAdjacentHTML('beforeend', `
+                        <div class="group relative aspect-square flex flex-col items-center justify-center bg-surface-container-high border border-outline-variant/30 rounded hover:border-secondary cursor-help transition-all">
+                            <span class="text-[8px] text-outline mb-1">D${i}</span>
+                            <div class="w-3 h-3 rounded-full ${status} ${status !== 'bg-tertiary' ? 'animate-pulse' : ''}"></div>
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface-bright text-on-surface text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none z-50 whitespace-nowrap border border-outline shadow-xl transition-opacity">
+                                Node: IURD-DB-${i.toString().padStart(3, '0')}<br>Status: Active<br>Load: ${Math.floor(Math.random()*40)+10}%
+                            </div>
+                        </div>
+                    `);
+                }
+             </script>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-md flex justify-between items-center px-lg border-t border-outline-variant bg-surface-dim mt-xl hidden md:flex pl-[304px]">
+<p class="font-body-sm text-body-sm text-outline">© 2024 IURD Bolívia. Ecclesia Ultimate v3.0.0-PRO</p>
+<div class="flex gap-lg">
+<span class="flex items-center gap-sm font-body-sm text-tertiary">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> Salud del Ecosistema: Óptima
+        </span>
+<a class="font-body-sm text-outline hover:text-on-surface" href="#">Seguridad</a>
+<a class="font-body-sm text-outline hover:text-on-surface" href="#">Protocolos</a>
+</div>
+</footer>
+<script>
+    // Initialize Disk Chart (Chart.js)
+    const ctx = document.getElementById('diskChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Usado', 'Disponible'],
+            datasets: [{
+                data: [75, 25],
+                backgroundColor: ['#7bd0ff', '#26364a'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            cutout: '80%',
+            plugins: { legend: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Simple Micro-interactions for live feeling
+    setInterval(() => {
+        const liveBadge = document.querySelector('.animate-pulse');
+        if(liveBadge) {
+            // Simulated variation
+        }
+    }, 5000);
+</script>
+</body></html>

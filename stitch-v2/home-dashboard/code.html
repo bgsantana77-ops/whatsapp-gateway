@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>IURD Bolívia - Dashboard Administrativo</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;family=JetBrains+Mono:wght@400;500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- External Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(38, 54, 74, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .heartbeat {
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.05); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.05); }
+            70% { transform: scale(1); }
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #45464d; border-radius: 10px; }
+        
+        /* Map styling to match dark theme */
+        #map { 
+            height: 450px; 
+            width: 100%;
+            background: #031427;
+        }
+        .leaflet-container {
+            background: #031427 !important;
+        }
+        .leaflet-tile {
+            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) !important;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary": "#00354a",
+                      "on-secondary-fixed-variant": "#004c69",
+                      "surface-container": "#102034",
+                      "on-primary-container": "#798098",
+                      "primary-container": "#0f172a",
+                      "inverse-on-surface": "#213145",
+                      "on-surface-variant": "#c6c6cd",
+                      "tertiary": "#4edea3",
+                      "outline": "#909097",
+                      "on-tertiary-container": "#009365",
+                      "on-surface": "#d3e4fe",
+                      "surface-container-low": "#0b1c30",
+                      "outline-variant": "#45464d",
+                      "inverse-primary": "#565e74",
+                      "tertiary-fixed": "#6ffbbe",
+                      "on-tertiary-fixed": "#002113",
+                      "surface-dim": "#031427",
+                      "on-tertiary": "#003824",
+                      "on-error-container": "#ffdad6",
+                      "background": "#031427",
+                      "primary-fixed-dim": "#bec6e0",
+                      "inverse-surface": "#d3e4fe",
+                      "surface": "#031427",
+                      "secondary-container": "#00a6e0",
+                      "secondary": "#7bd0ff",
+                      "primary": "#bec6e0",
+                      "primary-fixed": "#dae2fd",
+                      "on-primary": "#283044",
+                      "error": "#ffb4ab",
+                      "surface-bright": "#2a3a4f",
+                      "on-secondary-fixed": "#001e2c",
+                      "surface-container-high": "#1b2b3f",
+                      "on-tertiary-fixed-variant": "#005236",
+                      "surface-variant": "#26364a",
+                      "secondary-fixed-dim": "#7bd0ff",
+                      "on-primary-fixed": "#131b2e",
+                      "on-background": "#d3e4fe",
+                      "surface-tint": "#bec6e0",
+                      "on-secondary-container": "#00374d",
+                      "tertiary-container": "#001c10",
+                      "secondary-fixed": "#c4e7ff",
+                      "on-error": "#690005",
+                      "surface-container-lowest": "#000f21",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "tertiary-fixed-dim": "#4edea3",
+                      "surface-container-highest": "#26364a",
+                      "error-container": "#93000a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "4px",
+                      "2xl": "48px",
+                      "xl": "32px",
+                      "sm": "8px",
+                      "lg": "24px",
+                      "unit": "4px",
+                      "md": "16px",
+                      "3xl": "64px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Manrope"],
+                      "body-lg": ["Inter"],
+                      "body-sm": ["Inter"],
+                      "body-md": ["Inter"],
+                      "label-caps": ["JetBrains Mono"],
+                      "data-mono": ["JetBrains Mono"],
+                      "headline-xl": ["Manrope"],
+                      "headline-lg-mobile": ["Manrope"],
+                      "headline-md": ["Manrope"]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface selection:bg-secondary/30">
+<!-- Sidebar -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant flex flex-col py-lg px-md hidden md:flex z-50">
+<div class="flex items-center gap-sm mb-3xl">
+<div class="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary" style="font-variation-settings: 'FILL' 1;">church</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface leading-tight">IURD Bolívia</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Gestión Nacional</p>
+</div>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary font-bold border-r-2 border-secondary bg-surface-variant/30 hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="font-body-md text-body-md">Panel Central</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">live_tv</span>
+<span class="font-body-md text-body-md">TV/Radio Digital</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-body-md text-body-md">Membresía</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">account_balance</span>
+<span class="font-body-md text-body-md">Finanzas</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-body-md text-body-md">Informes</span>
+</a>
+</nav>
+<div class="mt-auto pt-lg border-t border-outline-variant space-y-xs">
+<button class="w-full bg-error text-on-error font-bold py-sm rounded-lg flex items-center justify-center gap-sm heartbeat">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sensors</span>
+<span>TRANSMITIR EN VIVO</span>
+</button>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-md text-body-md">Cerrar Sesión</span>
+</a>
+</div>
+</aside>
+<!-- Top Bar -->
+<header class="fixed top-0 right-0 w-full md:w-[calc(100%-280px)] bg-surface/80 backdrop-blur-md border-b border-outline-variant flex items-center justify-between px-lg h-16 z-40">
+<div class="flex items-center gap-md w-1/3">
+<div class="relative w-full max-w-sm hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-full py-1.5 pl-10 pr-4 text-body-sm font-body-sm focus:ring-2 focus:ring-secondary focus:border-transparent transition-all" placeholder="Buscar sedes, pastores o registros..." type="text"/>
+</div>
+<button class="md:hidden">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-sm">
+<button class="text-on-surface-variant hover:text-secondary transition-colors relative p-1.5">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
+</button>
+</div>
+<div class="flex items-center gap-sm pl-md border-l border-outline-variant">
+<img alt="User" class="w-8 h-8 rounded-full border border-secondary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAE-wW9jPAVk0YqFgQHf6bx6YwhdS3kTs4kv5ORzcAyd0ldfWU1r8woePF8ywelCsNf9A-7GDfv4tdPjEY6HJ6XKq5XmkwugsQiT2syWXD36TBAt4-HGCbDC5dQtMSgySShTE0qIFnE-l7HNdck9RJOnJwzNUlN17jQtnpUtCmXXhvyKQ55ZUq8C02fF93W_pZD2nF6YRZzyU-FwIeYfGsdeh0J-Zz-hkFg9wnqfMDwT-9R7CNjwwR3NUvkyJawqx2leriO7oil9NTT"/>
+<div class="hidden lg:block leading-tight">
+<p class="font-body-sm text-body-sm font-semibold text-on-surface">Admin Central</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Superuser</p>
+</div>
+</div>
+</div>
+</header>
+<main class="pt-16 pb-24 md:pb-lg md:ml-[280px] min-h-screen">
+<!-- Status Bar -->
+<section class="px-lg py-3 bg-surface-container flex flex-wrap items-center justify-between gap-md border-b border-outline-variant">
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-xs text-tertiary">
+<span class="material-symbols-outlined text-[18px]">cloud_done</span>
+<span class="font-label-caps text-label-caps uppercase">Sincronización Regional OK</span>
+</div>
+<div class="w-[1px] h-4 bg-outline-variant"></div>
+<div class="text-on-surface-variant font-body-sm text-body-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">public</span>
+<span>38 Iglesias | 47 Pastores Activos</span>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<span class="text-[10px] text-outline font-bold uppercase mr-2">Online:</span>
+<div class="flex -space-x-2">
+<div class="w-7 h-7 rounded-full bg-secondary-container text-[10px] flex items-center justify-center border border-surface">JS</div>
+<div class="w-7 h-7 rounded-full bg-tertiary-container text-[10px] flex items-center justify-center border border-surface text-tertiary">PL</div>
+<div class="w-7 h-7 rounded-full bg-surface-variant text-[10px] flex items-center justify-center border border-surface">+12</div>
+</div>
+</div>
+</section>
+<div class="p-lg space-y-lg">
+<!-- KPI Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
+<div class="bg-surface p-lg rounded-xl border border-outline-variant hover:border-secondary/40 transition-all shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="p-2 rounded-lg bg-secondary-container/20 text-secondary">
+<span class="material-symbols-outlined">groups</span>
+</div>
+<span class="text-tertiary font-label-caps text-label-caps bg-tertiary/10 px-2 py-0.5 rounded-full">+12.4%</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Fieles Activos</p>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">12,482</h2>
+<div class="mt-md h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[75%]"></div>
+</div>
+</div>
+<div class="bg-surface p-lg rounded-xl border border-outline-variant hover:border-secondary/40 transition-all shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="p-2 rounded-lg bg-tertiary-container/20 text-tertiary">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<span class="text-tertiary font-label-caps text-label-caps bg-tertiary/10 px-2 py-0.5 rounded-full">Récord</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Tasa de Crecimiento</p>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">8.2%</h2>
+<p class="mt-md font-body-sm text-body-sm text-outline">vs 5.1% mes anterior</p>
+</div>
+<div class="bg-surface p-lg rounded-xl border border-outline-variant hover:border-secondary/40 transition-all shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="p-2 rounded-lg bg-error-container/20 text-error">
+<span class="material-symbols-outlined heartbeat">live_tv</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="text-error font-label-caps text-label-caps">EN VIVO</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Espectadores Digitales</p>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">3,105</h2>
+<p class="mt-md font-body-sm text-body-sm text-outline">Multi-plataforma IURD</p>
+</div>
+<div class="bg-surface p-lg rounded-xl border border-outline-variant hover:border-secondary/40 transition-all shadow-sm">
+<div class="flex justify-between items-start mb-md">
+<div class="p-2 rounded-lg bg-secondary-container/20 text-secondary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-on-surface-variant font-label-caps text-label-caps uppercase">Nov 2024</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Recaudación Mensual</p>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">$428.5k</h2>
+<div class="mt-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px] text-tertiary">arrow_upward</span>
+<span class="text-tertiary font-data-mono text-data-mono">4.2%</span>
+</div>
+</div>
+</div>
+<!-- Charts Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+<div class="lg:col-span-8 bg-surface rounded-xl border border-outline-variant p-lg shadow-sm">
+<div class="flex items-center justify-between mb-xl">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Crecimiento de Membresía</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Métrica de rendimiento de 14 días (Bolívia)</p>
+</div>
+<select class="bg-surface-container-high border-outline-variant rounded-lg text-body-sm py-1 pr-8 outline-none focus:ring-1 focus:ring-secondary">
+<option>Últimos 14 Días</option>
+<option>Últimos 30 Días</option>
+</select>
+</div>
+<div class="h-[300px] w-full">
+<canvas id="growthChart"></canvas>
+</div>
+</div>
+<div class="lg:col-span-4 bg-surface rounded-xl border border-outline-variant p-lg shadow-sm">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xl">Distribución de Ofrendas</h3>
+<div class="h-[250px] relative flex justify-center items-center">
+<canvas id="givingChart"></canvas>
+<div class="absolute text-center pointer-events-none">
+<p class="font-label-caps text-label-caps text-outline">TOTAL</p>
+<p class="font-headline-md text-headline-md text-on-surface">$428K</p>
+</div>
+</div>
+<div class="mt-lg grid grid-cols-2 gap-sm">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#00a6e0]"></span>
+<span class="text-[12px] text-on-surface-variant uppercase font-medium">Diezmos</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#4edea3]"></span>
+<span class="text-[12px] text-on-surface-variant uppercase font-medium">Misiones</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#ffb4ab]"></span>
+<span class="text-[12px] text-on-surface-variant uppercase font-medium">Construcción</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#bec6e0]"></span>
+<span class="text-[12px] text-on-surface-variant uppercase font-medium">Social</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Global Presence Map -->
+<div class="lg:col-span-12 bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+<div class="p-lg flex justify-between items-center border-b border-outline-variant">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Red Territorial Bolívia</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">38 sedes activas distribuidas en 9 departamentos</p>
+</div>
+<button class="bg-secondary text-on-secondary font-bold px-lg py-sm rounded-lg text-body-sm hover:brightness-110 transition-all">Ver Plan de Expansión</button>
+</div>
+<div id="map"></div>
+</div>
+<!-- Bottom Grid: Leadership & Feed -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+<div class="lg:col-span-8 bg-surface rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+<div class="p-lg border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface">Liderazgo Regional</h3>
+<div class="flex items-center gap-md">
+<span class="font-body-sm text-body-sm text-on-surface-variant">47 Líderes Totales</span>
+<button class="text-secondary hover:underline font-body-sm text-body-sm font-semibold">Exportar Datos</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low border-b border-outline-variant text-label-caps text-outline">
+<th class="px-lg py-md text-[11px]">PASTOR / REGIÓN</th>
+<th class="px-lg py-md text-[11px] text-center">DESEMPEÑO</th>
+<th class="px-lg py-md text-[11px]">INCREMENTO MENSUAL</th>
+<th class="px-lg py-md text-[11px]">ACCIONES</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<tr class="hover:bg-secondary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary font-bold">JS</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">João Silva</p>
+<p class="font-body-sm text-body-sm text-outline">Región Santa Cruz</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-center">
+<div class="h-2 w-24 bg-surface-variant rounded-full mx-auto relative overflow-hidden">
+<div class="h-full bg-tertiary w-[94%]"></div>
+</div>
+<span class="text-[9px] text-tertiary font-bold mt-1 inline-block uppercase tracking-wider">Excelente</span>
+</td>
+<td class="px-lg py-md">
+<span class="font-data-mono text-data-mono text-on-surface">+1,402</span>
+</td>
+<td class="px-lg py-md">
+<button class="material-symbols-outlined text-outline hover:text-secondary">more_horiz</button>
+</td>
+</tr>
+<tr class="hover:bg-secondary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary font-bold">PL</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Pedro Lopez</p>
+<p class="font-body-sm text-body-sm text-outline">Región La Paz</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-center">
+<div class="h-2 w-24 bg-surface-variant rounded-full mx-auto relative overflow-hidden">
+<div class="h-full bg-secondary w-[87%]"></div>
+</div>
+<span class="text-[9px] text-secondary font-bold mt-1 inline-block uppercase tracking-wider">Optimizado</span>
+</td>
+<td class="px-lg py-md">
+<span class="font-data-mono text-data-mono text-on-surface">+892</span>
+</td>
+<td class="px-lg py-md">
+<button class="material-symbols-outlined text-outline hover:text-secondary">more_horiz</button>
+</td>
+</tr>
+<tr class="hover:bg-secondary/5 transition-colors group">
+<td class="px-lg py-md">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary font-bold">MA</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Mateo Arce</p>
+<p class="font-body-sm text-body-sm text-outline">Cochabamba Centro</p>
+</div>
+</div>
+</td>
+<td class="px-lg py-md text-center">
+<div class="h-2 w-24 bg-surface-variant rounded-full mx-auto relative overflow-hidden">
+<div class="h-full bg-tertiary w-[82%]"></div>
+</div>
+<span class="text-[9px] text-tertiary font-bold mt-1 inline-block uppercase tracking-wider">Creciendo</span>
+</td>
+<td class="px-lg py-md">
+<span class="font-data-mono text-data-mono text-on-surface">+645</span>
+</td>
+<td class="px-lg py-md">
+<button class="material-symbols-outlined text-outline hover:text-secondary">more_horiz</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="lg:col-span-4 bg-surface rounded-xl border border-outline-variant p-lg shadow-sm">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface">Actividad IURD Bolívia</h3>
+<span class="w-2 h-2 rounded-full bg-error animate-ping"></span>
+</div>
+<div class="space-y-lg">
+<div class="flex gap-md group">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[18px]">volunteer_activism</span>
+</div>
+<div class="absolute top-8 left-1/2 -translate-x-1/2 w-px h-full bg-outline-variant"></div>
+</div>
+<div class="flex-1 pb-4">
+<p class="font-body-sm text-body-sm text-on-surface"><span class="font-bold">Acción Social:</span> Entrega de víveres en El Alto completada.</p>
+<p class="text-[11px] text-outline mt-xs font-data-mono uppercase">Hace 2 minutos</p>
+<div class="mt-md bg-surface-container-high p-md rounded-lg border border-outline-variant">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] text-on-surface-variant font-bold">META LOGRADA</span>
+<span class="font-data-mono text-data-mono text-secondary">100%</span>
+</div>
+<div class="h-1 w-full bg-surface-variant rounded-full">
+<div class="h-full bg-secondary w-full"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="flex gap-md group">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-tertiary-container flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[18px]">campaign</span>
+</div>
+<div class="absolute top-8 left-1/2 -translate-x-1/2 w-px h-full bg-outline-variant"></div>
+</div>
+<div class="flex-1 pb-4">
+<p class="font-body-sm text-body-sm text-on-surface"><span class="font-bold">Nueva Sede:</span> Apertura confirmada en Tarija Sector Norte.</p>
+<p class="text-[11px] text-outline mt-xs font-data-mono uppercase">Hace 45 minutos</p>
+</div>
+</div>
+<div class="flex gap-md group">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-outline">
+<span class="material-symbols-outlined text-[18px]">video_library</span>
+</div>
+<div class="flex-1">
+<p class="font-body-sm text-body-sm text-on-surface"><span class="font-bold">Media Update:</span> Nuevo spot de TV para Red Uno cargado.</p>
+<p class="text-[11px] text-outline mt-xs font-data-mono uppercase">Hace 2 horas</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Nav (Mobile) -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 bg-surface-container-highest border-t border-outline-variant z-50">
+<a class="flex flex-col items-center p-2 text-secondary" href="#"><span class="material-symbols-outlined">dashboard</span></a>
+<a class="flex flex-col items-center p-2 text-on-surface-variant" href="#"><span class="material-symbols-outlined">live_tv</span></a>
+<a class="flex flex-col items-center p-2 text-on-surface-variant" href="#"><span class="material-symbols-outlined">groups</span></a>
+<a class="flex flex-col items-center p-2 text-on-surface-variant" href="#"><span class="material-symbols-outlined">menu</span></a>
+</nav>
+<!-- FAB -->
+<button class="fixed bottom-24 right-lg md:bottom-lg bg-secondary text-on-secondary w-14 h-14 rounded-2xl shadow-lg flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+<footer class="md:ml-[280px] py-md bg-surface-dim border-t border-outline-variant flex justify-between items-center px-lg">
+<p class="font-body-sm text-body-sm text-outline">© 2024 IURD Bolívia. Powered by Ecclesia OS v3.0.0</p>
+<div class="flex items-center gap-lg">
+<span class="font-body-sm text-body-sm text-tertiary">Soporte 24/7 Activo</span>
+</div>
+</footer>
+<script>
+    // Growth Chart.js
+    const growthCtx = document.getElementById('growthChart').getContext('2d');
+    new Chart(growthCtx, {
+        type: 'line',
+        data: {
+            labels: ['04 Nov', '06 Nov', '08 Nov', '10 Nov', '12 Nov', '14 Nov', '16 Nov', '18 Nov'],
+            datasets: [{
+                label: 'Crecimiento de Miembros',
+                data: [11200, 11450, 11300, 11800, 11750, 12100, 12350, 12482],
+                borderColor: '#7bd0ff',
+                backgroundColor: 'rgba(123, 208, 255, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#7bd0ff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { grid: { color: 'rgba(144, 144, 151, 0.1)' }, ticks: { color: '#909097' } },
+                x: { grid: { display: false }, ticks: { color: '#909097' } }
+            }
+        }
+    });
+
+    // Giving Chart.js
+    const givingCtx = document.getElementById('givingChart').getContext('2d');
+    new Chart(givingCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Diezmos', 'Misiones', 'Construcción', 'Social'],
+            datasets: [{
+                data: [55, 20, 15, 10],
+                backgroundColor: ['#00a6e0', '#4edea3', '#ffb4ab', '#bec6e0'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            cutout: '80%',
+            plugins: { legend: { display: false } },
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Leaflet Map Bolivia
+    const map = L.map('map').setView([-16.2902, -63.5887], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Sample Markers for Bolivia Cities (Total 38 markers simulation logic)
+    const locations = [
+        { lat: -17.7833, lon: -63.1821, name: "Sede Central - Santa Cruz" },
+        { lat: -16.5000, lon: -68.1500, name: "Catedral La Paz" },
+        { lat: -17.3895, lon: -66.1568, name: "IURD Cochabamba" },
+        { lat: -19.0333, lon: -65.2627, name: "IURD Sucre" },
+        { lat: -21.5353, lon: -64.7296, name: "IURD Tarija" },
+        { lat: -17.9833, lon: -67.1500, name: "IURD Oruro" },
+        { lat: -19.5833, lon: -65.7500, name: "IURD Potosí" },
+        { lat: -14.8333, lon: -64.9000, name: "IURD Trinidad" },
+        { lat: -11.0167, lon: -68.7500, name: "IURD Cobija" }
+    ];
+
+    locations.forEach(loc => {
+        L.marker([loc.lat, loc.lon]).addTo(map)
+            .bindPopup(`<b style="color:#031427">${loc.name}</b><br>Estado: Operativo`);
+    });
+
+    // Simulate 29 more markers across these zones
+    for(let i=0; i<29; i++){
+        let base = locations[Math.floor(Math.random() * locations.length)];
+        let lat = base.lat + (Math.random() - 0.5) * 1.5;
+        let lon = base.lon + (Math.random() - 0.5) * 1.5;
+        L.circleMarker([lat, lon], {
+            radius: 5,
+            fillColor: "#4edea3",
+            color: "#031427",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(map);
+    }
+</script>
+</body></html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ecclesia OS | IURD Bolivia Broadcast Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary": "#00354a",
+                    "on-secondary-fixed-variant": "#004c69",
+                    "surface-container": "#102034",
+                    "on-primary-container": "#798098",
+                    "primary-container": "#0f172a",
+                    "inverse-on-surface": "#213145",
+                    "on-surface-variant": "#c6c6cd",
+                    "tertiary": "#4edea3",
+                    "outline": "#909097",
+                    "on-tertiary-container": "#009365",
+                    "on-surface": "#d3e4fe",
+                    "surface-container-low": "#0b1c30",
+                    "outline-variant": "#45464d",
+                    "inverse-primary": "#565e74",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-tertiary-fixed": "#002113",
+                    "surface-dim": "#031427",
+                    "on-tertiary": "#003824",
+                    "on-error-container": "#ffdad6",
+                    "background": "#031427",
+                    "primary-fixed-dim": "#bec6e0",
+                    "inverse-surface": "#d3e4fe",
+                    "surface": "#031427",
+                    "secondary-container": "#00a6e0",
+                    "secondary": "#7bd0ff",
+                    "primary": "#bec6e0",
+                    "primary-fixed": "#dae2fd",
+                    "on-primary": "#283044",
+                    "error": "#ffb4ab",
+                    "surface-bright": "#2a3a4f",
+                    "on-secondary-fixed": "#001e2c",
+                    "surface-container-high": "#1b2b3f",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "surface-variant": "#26364a",
+                    "secondary-fixed-dim": "#7bd0ff",
+                    "on-primary-fixed": "#131b2e",
+                    "on-background": "#d3e4fe",
+                    "surface-tint": "#bec6e0",
+                    "on-secondary-container": "#00374d",
+                    "tertiary-container": "#001c10",
+                    "secondary-fixed": "#c4e7ff",
+                    "on-error": "#690005",
+                    "surface-container-lowest": "#000f21",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "tertiary-fixed-dim": "#4edea3",
+                    "surface-container-highest": "#26364a",
+                    "error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "4px",
+                    "2xl": "48px",
+                    "xl": "32px",
+                    "sm": "8px",
+                    "lg": "24px",
+                    "unit": "4px",
+                    "md": "16px",
+                    "3xl": "64px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Manrope"],
+                    "body-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-caps": ["JetBrains Mono"],
+                    "data-mono": ["JetBrains Mono"],
+                    "headline-xl": ["Manrope"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "headline-md": ["Manrope"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .skeleton-pulse {
+            background: linear-gradient(90deg, transparent 25%, rgba(190, 198, 224, 0.1) 50%, transparent 75%);
+            background-size: 200% 100%;
+            animation: skeleton-pulse 1.5s infinite;
+        }
+        @keyframes skeleton-pulse {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .live-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .chart-container { position: relative; height: 160px; width: 100%; }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen overflow-hidden">
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant shadow-sm flex flex-col py-lg px-md z-50 hidden md:flex">
+<div class="mb-2xl px-sm">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">IURD Bolivia</h1>
+<p class="font-body-sm text-body-sm text-outline">Media Operations Center</p>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-md text-body-md">Overview</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary font-bold border-r-2 border-secondary bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="live_tv">live_tv</span>
+<span class="font-body-md text-body-md">TV/Radio Bolivia</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+<span class="font-body-md text-body-md">Social Media</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-body-md text-body-md">Real-time Metrics</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="cloud_sync">cloud_sync</span>
+<span class="font-body-md text-body-md">CDN Status</span>
+</a>
+</nav>
+<button class="mb-xl mx-md py-sm px-lg bg-error-container text-on-error-container rounded-lg font-bold flex items-center justify-center gap-sm active:scale-95 transition-transform shadow-lg">
+<span class="material-symbols-outlined text-[18px]" data-icon="sensors">sensors</span>
+        TRANSMITIR EN VIVO
+    </button>
+<div class="border-t border-outline-variant pt-md space-y-xs">
+<div class="px-md mb-sm">
+<p class="text-[10px] font-label-caps text-outline uppercase tracking-widest">Admin</p>
+</div>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Broadcasting Config</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-body-md text-body-md">Sign Out</span>
+</a>
+</div>
+</aside>
+<header class="fixed top-0 right-0 w-full md:w-[calc(100%-280px)] bg-surface/80 backdrop-blur-md border-b border-outline-variant h-16 flex items-center justify-between px-lg z-40">
+<div class="flex items-center gap-lg flex-1">
+<div class="relative w-full max-w-md hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-full py-2 pl-10 pr-4 font-body-sm text-body-sm focus:ring-2 focus:ring-secondary outline-none" placeholder="Buscar programas, grabaciones..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden xl:flex flex-col items-end mr-md">
+<span class="text-xs font-bold text-secondary">SANTA CRUZ, BOLIVIA</span>
+<span class="text-[10px] text-outline font-data-mono">14:45 UTC-4</span>
+</div>
+<button class="text-on-surface-variant hover:text-secondary transition-colors p-2 active:opacity-80 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="flex items-center gap-sm bg-surface-container-high px-3 py-1.5 rounded-full border border-outline-variant">
+<div class="h-6 w-6 rounded-full overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCErjkSz4R4COeV-B1aC7VYbVnZJtS2CcXnmB7hSUjS-Y414qfdbdhiHGPZPk-yPEDsY4Nokl0kh2_xmNavOckxVxO2s-a5y8FNdus0InWBI7y5enADip5TYbGK9Iw7G-gDw-rerGmfgSoA4E8Ee9iATV9UVz75yOBiLTuF7xE9wt2d_ZPUy2-MFYnFnzNde2nSwYGI6msVErITk_LvPSPn5y9rcGtvU0ED-ZkzcRCORzbP5F98MHiuimnmamxjfdQQc1smJAsl5ANW"/>
+</div>
+<span class="font-body-sm text-body-sm font-semibold">Mateus Arce</span>
+</div>
+</div>
+</header>
+<main class="pt-16 md:ml-[280px] h-screen overflow-hidden flex flex-col">
+<div class="px-lg py-md flex flex-wrap items-center justify-between gap-md border-b border-outline-variant bg-surface-container-lowest">
+<div class="flex items-center gap-sm bg-surface-variant/30 p-1 rounded-xl">
+<button class="px-lg py-2 rounded-lg bg-secondary text-on-secondary-container font-bold text-body-sm shadow-sm">TV Red Universal</button>
+<button class="px-lg py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant/50 font-medium text-body-sm">Radio Red Aleluya</button>
+<button class="px-lg py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant/50 font-medium text-body-sm">Redes Sociales</button>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex gap-xs items-center px-md py-2 bg-surface-container-high rounded-lg border border-outline-variant shadow-sm">
+<span class="material-symbols-outlined text-secondary" data-icon="calendar_month">calendar_month</span>
+<span class="font-data-mono text-data-mono">Nov 18 - Nov 24, 2024</span>
+</div>
+</div>
+</div>
+<div class="flex-1 flex overflow-hidden">
+<!-- Timeline Sidebar -->
+<div class="w-80 border-r border-outline-variant overflow-y-auto hide-scrollbar bg-surface-container-low px-lg py-xl flex flex-col">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface">Timeline</h3>
+<div class="flex items-center gap-xs px-2 py-1 bg-error/10 rounded text-error border border-error/20">
+<span class="relative flex h-3 w-3">
+<span class="live-pulse absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-error"></span>
+</span>
+<span class="text-[10px] font-bold tracking-widest uppercase">En Vivo</span>
+</div>
+</div>
+<div class="flex-1 space-y-xl relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant">
+<!-- Live Segment -->
+<div class="relative pl-8 group">
+<div class="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-secondary ring-4 ring-secondary/20 z-10"></div>
+<div class="bg-secondary/10 border border-secondary/30 rounded-xl p-md transform scale-105 shadow-md">
+<span class="font-data-mono text-xs text-secondary font-bold">14:00 - 15:30</span>
+<h4 class="font-body-md text-body-md font-bold text-on-surface mt-xs leading-tight">Hora del Milagro</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Obispo João Silva</p>
+</div>
+</div>
+<!-- Upcoming -->
+<div class="relative pl-8 group opacity-60 hover:opacity-100 transition-all">
+<div class="absolute left-[7px] top-1.5 w-3 h-3 rounded-full bg-outline-variant z-10 group-hover:bg-tertiary"></div>
+<div class="p-md cursor-pointer">
+<span class="font-data-mono text-xs text-outline">15:45 - 16:30</span>
+<h4 class="font-body-md text-body-md font-semibold text-on-surface mt-xs leading-tight">Casos Reales</h4>
+<p class="font-body-sm text-body-sm text-outline mt-xs">Estudio Central - La Paz</p>
+</div>
+</div>
+<div class="relative pl-8 group opacity-60 hover:opacity-100 transition-all">
+<div class="absolute left-[7px] top-1.5 w-3 h-3 rounded-full bg-outline-variant z-10 group-hover:bg-tertiary"></div>
+<div class="p-md cursor-pointer">
+<span class="font-data-mono text-xs text-outline">17:00 - 18:00</span>
+<h4 class="font-body-md text-body-md font-semibold text-on-surface mt-xs leading-tight">Inteligencia y Fe</h4>
+<p class="font-body-sm text-body-sm text-outline mt-xs">Herederos del Reino</p>
+</div>
+</div>
+<div class="relative pl-8 group opacity-60 hover:opacity-100 transition-all">
+<div class="absolute left-[7px] top-1.5 w-3 h-3 rounded-full bg-outline-variant z-10 group-hover:bg-tertiary"></div>
+<div class="p-md cursor-pointer">
+<span class="font-data-mono text-xs text-outline">19:00 - 20:30</span>
+<h4 class="font-body-md text-body-md font-semibold text-on-surface mt-xs leading-tight">Terapia del Amor</h4>
+<p class="font-body-sm text-body-sm text-outline mt-xs">Especial Santa Cruz</p>
+</div>
+</div>
+</div>
+<!-- Audience Mini Graph -->
+<div class="mt-lg pt-lg border-t border-outline-variant">
+<div class="flex justify-between items-center mb-sm">
+<span class="text-xs font-bold text-outline uppercase tracking-wider">Audience (Bolivia)</span>
+<span class="text-xs font-data-mono text-tertiary">+12%</span>
+</div>
+<div class="chart-container">
+<canvas id="audienceChart"></canvas>
+</div>
+</div>
+</div>
+<!-- 7x12 Grid Area & Social Feed -->
+<div class="flex-1 overflow-auto bg-background p-lg flex flex-col gap-lg">
+<div class="min-w-[1000px]">
+<div class="flex items-center justify-between mb-md">
+<h4 class="font-headline-md text-headline-md text-on-surface">Weekly Broadcast Plan</h4>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-xs"><div class="w-3 h-3 rounded bg-secondary-container"></div><span class="font-label-caps text-label-caps text-outline">Liberación</span></div>
+<div class="flex items-center gap-xs"><div class="w-3 h-3 rounded bg-tertiary"></div><span class="font-label-caps text-label-caps text-outline">Prosperidad</span></div>
+<div class="flex items-center gap-xs"><div class="w-3 h-3 rounded bg-amber-500"></div><span class="font-label-caps text-label-caps text-outline">Familia</span></div>
+<div class="flex items-center gap-xs"><div class="w-3 h-3 rounded bg-purple-500"></div><span class="font-label-caps text-label-caps text-outline">Espíritu</span></div>
+</div>
+</div>
+<div class="grid grid-cols-8 gap-xs mb-xs">
+<div class="h-10"></div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Lun</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Mar</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Mié</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Jue</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg border-b-2 border-secondary">Vie</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Sáb</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Dom</div>
+</div>
+<div class="grid grid-cols-8 gap-xs">
+<div class="space-y-xs">
+<div class="h-16 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">08:00</div>
+<div class="h-16 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">10:00</div>
+<div class="h-16 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">12:00</div>
+<div class="h-16 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">14:00</div>
+<div class="h-16 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">16:00</div>
+<div class="h-16 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">18:00</div>
+<div class="h-16 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">20:00</div>
+</div>
+<!-- Mon -->
+<div class="space-y-xs">
+<div class="h-16 bg-surface-container rounded-lg p-xs border-l-4 border-secondary-container">
+<span class="text-[9px] font-bold text-secondary">LIBERACIÓN</span>
+<span class="font-body-sm text-[11px] leading-tight block">Prosperidad 7:00</span>
+</div>
+<div class="h-32 bg-surface-container rounded-lg p-xs border-l-4 border-purple-500">
+<span class="text-[9px] font-bold text-purple-500">ESPÍRITU</span>
+<span class="font-body-sm text-[11px] leading-tight block">Escuela de Fe</span>
+</div>
+<div class="h-16 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+</div>
+<!-- Tue -->
+<div class="space-y-xs">
+<div class="h-32 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+<div class="h-16 bg-surface-container rounded-lg p-xs border-l-4 border-amber-500">
+<span class="text-[9px] font-bold text-amber-500">FAMILIA</span>
+<span class="font-body-sm text-[11px] leading-tight block">Salud</span>
+</div>
+<div class="h-32 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+</div>
+<!-- Wed -->
+<div class="space-y-xs">
+<div class="h-16 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+<div class="h-32 bg-secondary-container/40 rounded-lg p-xs border-l-4 border-secondary-container">
+<span class="text-[9px] font-bold text-secondary">LIBERACIÓN</span>
+<span class="font-body-sm text-[11px] leading-tight block">Clamor Miércoles</span>
+</div>
+<div class="h-48 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+</div>
+<!-- Thu -->
+<div class="space-y-xs">
+<div class="h-48 bg-surface-container rounded-lg p-xs border-l-4 border-amber-500">
+<span class="text-[9px] font-bold text-amber-500">FAMILIA</span>
+<span class="font-body-sm text-[11px] leading-tight block">Terapia Amor</span>
+</div>
+<div class="h-16 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+</div>
+<!-- Fri (ACTIVE) -->
+<div class="space-y-xs relative">
+<!-- Live Marker -->
+<div class="absolute w-[calc(100%+8px)] -left-1 top-[220px] border-t-2 border-secondary z-30 pointer-events-none">
+<div class="absolute -left-1 -top-1 w-2 h-2 rounded-full bg-secondary"></div>
+</div>
+<div class="h-16 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+<div class="h-16 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+<div class="h-16 bg-secondary text-on-secondary rounded-lg p-xs border-l-4 border-white shadow-xl">
+<span class="text-[9px] font-bold">LIVE</span>
+<span class="font-body-sm text-[11px] font-bold block">Hora Milagro</span>
+</div>
+<div class="h-16 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+<div class="h-16 bg-surface-container rounded-lg p-xs border-l-4 border-tertiary">
+<span class="text-[9px] font-bold text-tertiary">PROSPERIDAD</span>
+<span class="font-body-sm text-[11px] block">Campaña Santa</span>
+</div>
+</div>
+<!-- Sat -->
+<div class="space-y-xs">
+<div class="h-32 skeleton-pulse bg-surface-container/30 rounded-lg"></div>
+<div class="h-32 bg-surface-container rounded-lg p-xs border-l-4 border-purple-500">
+<span class="text-[9px] font-bold text-purple-500">ESPÍRITU</span>
+<span class="font-body-sm text-[11px] leading-tight block">Ayuno Daniel</span>
+</div>
+</div>
+<!-- Sun -->
+<div class="space-y-xs">
+<div class="h-32 bg-secondary-container/20 rounded-lg p-xs border-l-4 border-secondary-container">
+<span class="text-[9px] font-bold text-secondary">LIBERACIÓN</span>
+<span class="font-body-sm text-[11px] leading-tight block">07:00hs</span>
+</div>
+<div class="h-32 bg-secondary-container rounded-lg p-xs border-l-4 border-white shadow-lg">
+<span class="text-[9px] font-bold">PRINCIPAL</span>
+<span class="font-body-sm text-[11px] font-bold block">09:30hs</span>
+</div>
+<div class="h-16 bg-surface-container rounded-lg p-xs border-l-4 border-amber-500">
+<span class="text-[9px] font-bold text-amber-500">FAMILIA</span>
+<span class="font-body-sm text-[11px] block">18:00hs</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Social Management Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+<!-- Social Analytics -->
+<div class="lg:col-span-1 bg-surface-container-low border border-outline-variant rounded-2xl p-lg flex flex-col">
+<h4 class="font-headline-md text-body-lg font-bold mb-md">Redes Bolivia Impact</h4>
+<div class="space-y-lg flex-1">
+<div>
+<div class="flex justify-between text-xs mb-1">
+<span class="text-outline">Engagement Reach</span>
+<span class="text-secondary font-bold">2.4M</span>
+</div>
+<div class="chart-container">
+<canvas id="socialReachChart"></canvas>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="bg-surface-container p-md rounded-xl border border-outline-variant/30">
+<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Facebook</p>
+<p class="text-lg font-headline-md text-on-surface">1.2M</p>
+</div>
+<div class="bg-surface-container p-md rounded-xl border border-outline-variant/30">
+<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Instagram</p>
+<p class="text-lg font-headline-md text-on-surface">450k</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Social Content Feed -->
+<div class="lg:col-span-2 bg-surface-container-low border border-outline-variant rounded-2xl p-lg">
+<div class="flex justify-between items-center mb-md">
+<h4 class="font-headline-md text-body-lg font-bold">Contenido Reciente</h4>
+<button class="text-secondary text-xs font-bold hover:underline">Ver todo</button>
+</div>
+<div class="space-y-md">
+<div class="bg-surface-container/50 border border-outline-variant/30 rounded-xl p-md flex gap-md items-start group hover:bg-surface-variant/20 transition-all cursor-pointer">
+<div class="h-12 w-12 rounded-lg bg-surface-variant flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="videocam">videocam</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h5 class="font-body-md font-bold text-on-surface">Video: Clamor por las Familias (SCZ)</h5>
+<p class="text-xs text-outline">Publicado el 22 Nov, 2024</p>
+</div>
+<span class="px-2 py-1 bg-tertiary/10 text-tertiary text-[10px] font-bold rounded">Viral</span>
+</div>
+<div class="flex items-center gap-xl mt-sm text-xs font-data-mono">
+<span class="flex items-center gap-1 text-on-surface"><span class="material-symbols-outlined text-sm" data-icon="favorite">favorite</span> 45.2k</span>
+<span class="flex items-center gap-1 text-on-surface"><span class="material-symbols-outlined text-sm" data-icon="share">share</span> 12.8k</span>
+<span class="flex items-center gap-1 text-on-surface"><span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span> 890k</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container/50 border border-outline-variant/30 rounded-xl p-md flex gap-md items-start group hover:bg-surface-variant/20 transition-all cursor-pointer">
+<div class="h-12 w-12 rounded-lg bg-surface-variant flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-amber-500" data-icon="image">image</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h5 class="font-body-md font-bold text-on-surface">Post: Frase del día - Obispo João</h5>
+<p class="text-xs text-outline">Publicado el 23 Nov, 2024</p>
+</div>
+</div>
+<div class="flex items-center gap-xl mt-sm text-xs font-data-mono">
+<span class="flex items-center gap-1 text-on-surface"><span class="material-symbols-outlined text-sm" data-icon="favorite">favorite</span> 12.1k</span>
+<span class="flex items-center gap-1 text-on-surface"><span class="material-symbols-outlined text-sm" data-icon="share">share</span> 3.4k</span>
+<span class="flex items-center gap-1 text-on-surface"><span class="material-symbols-outlined text-sm" data-icon="chat">chat</span> 422</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Unified Live Player -->
+<div class="fixed bottom-lg right-lg w-80 bg-surface-container-high border border-outline-variant shadow-2xl rounded-2xl p-md z-50 flex gap-md items-center group transform translate-y-0 transition-transform hover:-translate-y-1">
+<div class="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+<img alt="Live Stream Cover" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnHrI0SHHIPquY3AfjtSFrPODk3zW7Nk7xDKypOaUAGt8CxX_qSjwXFEN13Mj73GC6wxvJfJklN_KMdFJSkiRD4Dwl4iPpNs2MxILEV3fO6cRFJ8RHrQOd8EcqTKAyDRARzgTfuqDaPtj7YnQSVzn_NBghLG8U-RtXs8RdXzoko3F7E5NhIe-rR-GG2JgvyLPc9dc5rIwG47doCV0-94pSu_aOfhySzew8X0j8x9GbkJ-iCwHdkeQnccefri35_IsFqT2Puyw8nLfw"/>
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-3xl" data-icon="play_circle">play_circle</span>
+</div>
+<div class="absolute bottom-1 right-1 bg-error text-[8px] font-bold px-1 rounded uppercase flex items-center gap-1">
+<span class="w-1 h-1 bg-white rounded-full animate-pulse"></span>
+            Live
+        </div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-label-caps text-[10px] text-secondary tracking-widest uppercase mb-xs">TV Red Universal</p>
+<h5 class="font-body-md text-body-md font-bold text-on-surface truncate">Hora del Milagro</h5>
+<p class="font-body-sm text-xs text-outline truncate">Obispo João Silva</p>
+<div class="flex items-center gap-sm mt-md">
+<button class="text-on-surface-variant hover:text-secondary"><span class="material-symbols-outlined text-xl" data-icon="skip_previous">skip_previous</span></button>
+<button class="bg-secondary text-on-secondary h-8 w-8 rounded-full flex items-center justify-center shadow-lg"><span class="material-symbols-outlined fill text-lg" data-icon="pause" style="font-variation-settings: 'FILL' 1;">pause</span></button>
+<button class="text-on-surface-variant hover:text-secondary"><span class="material-symbols-outlined text-xl" data-icon="skip_next">skip_next</span></button>
+<div class="flex-1"></div>
+<button class="text-outline hover:text-on-surface"><span class="material-symbols-outlined text-lg" data-icon="open_in_full">open_in_full</span></button>
+</div>
+</div>
+</div>
+<!-- Mobile Nav -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-highest border-t border-outline-variant shadow-lg z-50 rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-[10px] uppercase">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full p-2 scale-105 shadow-lg">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-label-caps text-[10px] uppercase">Stats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+<span class="font-label-caps text-[10px] uppercase">Menu</span>
+</button>
+</nav>
+<script>
+    // Audience Metrics Chart
+    const audienceCtx = document.getElementById('audienceChart').getContext('2d');
+    new Chart(audienceCtx, {
+        type: 'line',
+        data: {
+            labels: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+            datasets: [{
+                label: 'Viewers',
+                data: [420, 580, 510, 690, 850, 920],
+                borderColor: '#7bd0ff',
+                backgroundColor: 'rgba(123, 208, 255, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { display: false },
+                y: { display: false }
+            }
+        }
+    });
+
+    // Social Reach Chart
+    const socialCtx = document.getElementById('socialReachChart').getContext('2d');
+    new Chart(socialCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
+            datasets: [{
+                label: 'Reach (x1000)',
+                data: [120, 150, 180, 140, 210, 240, 310],
+                backgroundColor: '#bec6e0',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { 
+                    grid: { display: false },
+                    ticks: { color: '#909097', font: { size: 10 } }
+                },
+                y: { display: false }
+            }
+        }
+    });
+
+    // Simple interaction for broadcast tabs
+    document.querySelectorAll('.bg-surface-variant\\/30 button').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.bg-surface-variant\\/30 button').forEach(t => {
+                t.classList.remove('bg-secondary', 'text-on-secondary-container', 'font-bold', 'shadow-sm');
+                t.classList.add('text-on-surface-variant', 'font-medium');
+            });
+            tab.classList.add('bg-secondary', 'text-on-secondary-container', 'font-bold', 'shadow-sm');
+            tab.classList.remove('text-on-surface-variant', 'font-medium');
+        });
+    });
+</script>
+</body></html>

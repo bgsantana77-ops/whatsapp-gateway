@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>System Status | Ecclesia OS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-heartbeat { animation: heartbeat 2s infinite ease-in-out; }
+        .glass-panel { backdrop-filter: blur(12px); background-color: rgba(3, 20, 39, 0.7); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #45464d; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #909097; }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#4edea3",
+                    "outline": "#909097",
+                    "tertiary": "#4edea3",
+                    "surface-dim": "#031427",
+                    "error-container": "#93000a",
+                    "primary-container": "#0f172a",
+                    "on-background": "#d3e4fe",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "surface-bright": "#2a3a4f",
+                    "inverse-surface": "#d3e4fe",
+                    "on-primary-fixed": "#131b2e",
+                    "on-secondary-fixed-variant": "#004c69",
+                    "on-error": "#690005",
+                    "surface-container-high": "#1b2b3f",
+                    "inverse-on-surface": "#213145",
+                    "secondary-container": "#00a6e0",
+                    "inverse-primary": "#565e74",
+                    "background": "#031427",
+                    "on-secondary": "#00354a",
+                    "surface-container-lowest": "#000f21",
+                    "on-tertiary-container": "#009365",
+                    "on-surface-variant": "#c6c6cd",
+                    "on-secondary-container": "#00374d",
+                    "surface-variant": "#26364a",
+                    "on-secondary-fixed": "#001e2c",
+                    "surface": "#031427",
+                    "on-error-container": "#ffdad6",
+                    "primary-fixed": "#dae2fd",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-primary-container": "#798098",
+                    "on-surface": "#d3e4fe",
+                    "tertiary-container": "#001c10",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-primary": "#283044",
+                    "surface-tint": "#bec6e0",
+                    "surface-container": "#102034",
+                    "error": "#ffb4ab",
+                    "secondary": "#7bd0ff",
+                    "secondary-fixed-dim": "#7bd0ff",
+                    "surface-container-highest": "#26364a",
+                    "on-tertiary-fixed": "#002113",
+                    "primary": "#bec6e0",
+                    "secondary-fixed": "#c4e7ff",
+                    "on-tertiary": "#003824",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "surface-container-low": "#0b1c30",
+                    "outline-variant": "#45464d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "2xl": "48px",
+                    "3xl": "64px",
+                    "xs": "4px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Manrope"],
+                    "body-sm": ["Inter"],
+                    "headline-lg": ["Manrope"],
+                    "body-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "label-caps": ["JetBrains Mono"],
+                    "headline-xl": ["Manrope"],
+                    "data-mono": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-md selection:bg-secondary/30">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant shadow-sm flex flex-col py-lg px-md hidden md:flex">
+<div class="flex items-center gap-sm mb-3xl px-xs">
+<div class="w-10 h-10 bg-secondary rounded flex items-center justify-center text-on-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface leading-tight">Ecclesia OS</h1>
+<p class="font-body-sm text-body-sm text-outline">Church Management</p>
+</div>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined">home</span> Home
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined">live_tv</span> TV/Radio
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined">share</span> Social
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg bg-transparent text-secondary font-bold border-r-2 border-secondary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings_input_component</span> System
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined">forum</span> Messages
+            </a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg hover:bg-surface-variant/50 transition-colors text-on-surface-variant font-medium" href="#">
+<span class="material-symbols-outlined">settings</span> Configuration
+            </a>
+</nav>
+<div class="mt-auto space-y-xs border-t border-outline-variant pt-lg">
+<a class="flex items-center gap-md px-md py-sm text-outline hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">help</span> Support
+            </a>
+<a class="flex items-center gap-md px-md py-sm text-outline hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span> Sign Out
+            </a>
+</div>
+</aside>
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 right-0 w-full md:w-[calc(100%-280px)] h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant shadow-sm flex items-center justify-between px-lg z-40">
+<div class="flex items-center gap-md">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="bg-surface-container-lowest border border-outline-variant rounded-lg pl-10 pr-4 py-1.5 w-64 text-body-sm focus:outline-none focus:ring-2 focus:ring-secondary/50" placeholder="Search system resources..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-secondary cursor-pointer transition-colors">rss_feed</span>
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-secondary cursor-pointer transition-colors">notifications</span>
+<span class="absolute -top-1 -right-1 w-3 h-3 bg-tertiary rounded-full border-2 border-surface"></span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-secondary cursor-pointer transition-colors">account_circle</span>
+</div>
+<div class="hidden sm:block">
+<p class="font-label-caps text-label-caps text-tertiary">SYSTEM: ONLINE</p>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="pt-24 pb-20 md:pb-8 pl-4 md:pl-[304px] pr-4 md:pr-8 min-h-screen">
+<!-- Dashboard Header -->
+<div class="mb-xl flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">System Status Module</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Real-time infrastructure health and database latency monitoring.</p>
+</div>
+<div class="flex items-center gap-sm">
+<button class="bg-secondary text-on-secondary px-lg py-sm rounded-lg font-bold flex items-center gap-sm hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined">refresh</span> Run Diagnostics
+                </button>
+</div>
+</div>
+<!-- Upper Grid: Disk & Timeline -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-lg mb-xl">
+<!-- Disk Usage Visualization -->
+<div class="lg:col-span-4 bg-surface-container border border-outline-variant rounded-xl p-lg flex flex-col items-center justify-center relative overflow-hidden">
+<div class="absolute top-4 left-4">
+<h3 class="font-label-caps text-label-caps text-outline">DISK USAGE</h3>
+</div>
+<!-- SVG Circular Progress -->
+<div class="relative w-48 h-48">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-variant" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-secondary transition-all duration-1000" cx="96" cy="96" fill="transparent" r="88" stroke="currentColor" stroke-dasharray="552.92" stroke-dashoffset="138.23" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-xl text-headline-xl text-on-surface">75%</span>
+<span class="font-label-caps text-label-caps text-outline">1.2 TB / 1.6 TB</span>
+</div>
+</div>
+<div class="mt-md w-full grid grid-cols-2 gap-sm">
+<div class="bg-surface-container-low p-sm rounded border border-outline-variant">
+<p class="text-[10px] text-outline uppercase font-bold">Read Velocity</p>
+<p class="font-data-mono text-secondary">412 MB/s</p>
+</div>
+<div class="bg-surface-container-low p-sm rounded border border-outline-variant">
+<p class="text-[10px] text-outline uppercase font-bold">Write Velocity</p>
+<p class="font-data-mono text-tertiary">285 MB/s</p>
+</div>
+</div>
+</div>
+<!-- System Event Timeline -->
+<div class="lg:col-span-8 bg-surface-container border border-outline-variant rounded-xl p-lg flex flex-col h-[320px]">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-label-caps text-label-caps text-outline">SYSTEM EVENT TIMELINE</h3>
+<span class="text-[10px] bg-surface-variant px-2 py-0.5 rounded text-on-surface-variant">LIVE LOGS</span>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar space-y-md pr-md">
+<div class="flex gap-md border-l-2 border-tertiary pl-md py-xs relative">
+<div class="absolute -left-[7px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="font-data-mono text-xs text-outline w-24 shrink-0">14:22:15</span>
+<div class="flex-1">
+<p class="text-body-sm font-medium text-on-surface">Auth Service: User session cleanup completed</p>
+<p class="text-xs text-outline">Purged 1,245 expired JWT tokens from Redis cache.</p>
+</div>
+</div>
+<div class="flex gap-md border-l-2 border-outline-variant pl-md py-xs relative">
+<div class="absolute -left-[7px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-outline-variant"></div>
+<span class="font-data-mono text-xs text-outline w-24 shrink-0">14:18:02</span>
+<div class="flex-1">
+<p class="text-body-sm font-medium text-on-surface">API Gateway: Rate limit adjustment</p>
+<p class="text-xs text-outline">Dynamic scaling enabled for endpoint /v2/live-stream.</p>
+</div>
+</div>
+<div class="flex gap-md border-l-2 border-error pl-md py-xs relative">
+<div class="absolute -left-[7px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-error"></div>
+<span class="font-data-mono text-xs text-outline w-24 shrink-0">14:05:44</span>
+<div class="flex-1">
+<p class="text-body-sm font-medium text-error">Storage Node 04: High latency detected</p>
+<p class="text-xs text-outline">I/O wait exceeding 500ms. Re-routing traffic to Node 05.</p>
+</div>
+</div>
+<div class="flex gap-md border-l-2 border-outline-variant pl-md py-xs relative">
+<div class="absolute -left-[7px] top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-outline-variant"></div>
+<span class="font-data-mono text-xs text-outline w-24 shrink-0">13:55:10</span>
+<div class="flex-1">
+<p class="text-body-sm font-medium text-on-surface">System: Backup snapshot initiated</p>
+<p class="text-xs text-outline">Snapshot ID: snap-8842-church-core.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Service Status Grid (15 Cards) -->
+<h3 class="font-label-caps text-label-caps text-outline mb-md">CORE SERVICE INFRASTRUCTURE</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-md mb-xl">
+<!-- Template for 15 cards -->
+<script>
+                const services = [
+                    { name: 'Core API', health: 'healthy', log: 'GET /status 200 OK' },
+                    { name: 'Auth Server', health: 'healthy', log: 'Token rotation active' },
+                    { name: 'S3 Storage', health: 'warning', log: 'Latent object retrieval' },
+                    { name: 'Redis Cache', health: 'healthy', log: 'Hit rate 98.4%' },
+                    { name: 'Push Notify', health: 'healthy', log: 'Queue: 0 pending' },
+                    { name: 'Media Encode', health: 'healthy', log: 'FFmpeg processing active' },
+                    { name: 'Geo-Cluster', health: 'critical', log: 'Region US-WEST down' },
+                    { name: 'User Service', health: 'healthy', log: 'DB pool connected' },
+                    { name: 'Payment Proc', health: 'healthy', log: 'Stripe webhook: OK' },
+                    { name: 'Search Engine', health: 'healthy', log: 'Indexing completed' },
+                    { name: 'Live Stream', health: 'healthy', log: 'RTMP stream active' },
+                    { name: 'Analytics', health: 'warning', log: 'Memory limit 85%' },
+                    { name: 'Audit Logs', health: 'healthy', log: 'Stream: JSON-UDP' },
+                    { name: 'Admin Portal', health: 'healthy', log: 'Websocket: 4 nodes' },
+                    { name: 'Mailing', health: 'healthy', log: 'SES throughput: stable' }
+                ];
+
+                const grid = document.currentScript.parentElement;
+                services.forEach(s => {
+                    const healthColor = s.health === 'healthy' ? 'bg-tertiary' : (s.health === 'warning' ? 'bg-secondary' : 'bg-error');
+                    const healthBadge = s.health === 'healthy' ? 'Healthy' : (s.health === 'warning' ? 'Degraded' : 'Critical');
+                    const card = `
+                        <div class="bg-surface-container border border-outline-variant rounded-xl p-md flex flex-col gap-sm hover:translate-y-[-2px] transition-transform shadow-sm">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-body-sm font-bold text-on-surface truncate">${s.name}</h4>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full ${healthColor} ${s.health !== 'healthy' ? 'animate-pulse' : ''}"></span>
+                                    <span class="text-[10px] text-outline font-bold uppercase">${healthBadge}</span>
+                                </div>
+                            </div>
+                            <div class="bg-surface-container-lowest rounded p-2 border border-outline-variant/30">
+                                <p class="font-data-mono text-[11px] text-outline-variant truncate italic">${s.log}</p>
+                            </div>
+                            <button class="mt-xs w-full py-1.5 border border-outline-variant rounded text-[11px] font-bold text-on-surface hover:bg-surface-variant transition-colors flex items-center justify-center gap-sm">
+                                <span class="material-symbols-outlined text-sm">restart_alt</span> RESTART
+                            </button>
+                        </div>
+                    `;
+                    grid.insertAdjacentHTML('beforeend', card);
+                });
+            </script>
+</div>
+<!-- DB Status Panel (46 DBs) -->
+<div class="bg-surface-container border border-outline-variant rounded-xl overflow-hidden mb-xl">
+<div class="px-lg py-md border-b border-outline-variant flex items-center justify-between">
+<div>
+<h3 class="font-label-caps text-label-caps text-outline">DATABASE CLUSTER (46 NODES)</h3>
+<p class="text-[10px] text-outline-variant">PostgreSQL Multi-Region Replication</p>
+</div>
+<div class="flex items-center gap-lg">
+<div class="text-right">
+<p class="text-[10px] text-outline uppercase font-bold">AVG Latency</p>
+<p class="font-data-mono text-tertiary">14ms</p>
+</div>
+<div class="text-right">
+<p class="text-[10px] text-outline uppercase font-bold">Global Uptime</p>
+<p class="font-data-mono text-secondary">99.998%</p>
+</div>
+</div>
+</div>
+<div class="max-h-[400px] overflow-y-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-low sticky top-0 z-10">
+<tr class="text-[10px] text-outline uppercase font-bold">
+<th class="px-lg py-sm">Node ID</th>
+<th class="px-lg py-sm">Region</th>
+<th class="px-lg py-sm">Latency</th>
+<th class="px-lg py-sm">Uptime</th>
+<th class="px-lg py-sm">Status</th>
+<th class="px-lg py-sm text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/30">
+<!-- Simulated Rows -->
+<script>
+                            const regions = ['US-EAST-1', 'US-WEST-2', 'EU-WEST-1', 'AP-SOUTH-1'];
+                            const tbody = document.currentScript.parentElement;
+                            for(let i=1; i<=46; i++) {
+                                const lat = Math.floor(Math.random() * 40) + 5;
+                                const region = regions[Math.floor(Math.random() * regions.length)];
+                                const uptime = (Math.random() * (100 - 99.9) + 99.9).toFixed(3);
+                                const status = Math.random() > 0.95 ? 'SYNCING' : 'ACTIVE';
+                                const row = `
+                                    <tr class="hover:bg-tertiary/5 transition-colors group">
+                                        <td class="px-lg py-2.5 font-data-mono text-sm text-on-surface">db-node-0${i < 10 ? '0'+i : i}</td>
+                                        <td class="px-lg py-2.5 text-xs text-outline">${region}</td>
+                                        <td class="px-lg py-2.5 font-data-mono text-xs ${lat > 30 ? 'text-secondary' : 'text-tertiary'}">${lat}ms</td>
+                                        <td class="px-lg py-2.5 font-data-mono text-xs text-on-surface-variant">${uptime}%</td>
+                                        <td class="px-lg py-2.5">
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded ${status === 'ACTIVE' ? 'bg-tertiary/10 text-tertiary' : 'bg-secondary/10 text-secondary'}">${status}</span>
+                                        </td>
+                                        <td class="px-lg py-2.5 text-right">
+                                            <button class="material-symbols-outlined text-outline group-hover:text-secondary cursor-pointer text-lg">settings</button>
+                                        </td>
+                                    </tr>
+                                `;
+                                tbody.insertAdjacentHTML('beforeend', row);
+                            }
+                        </script>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-highest border-t border-outline-variant shadow-lg z-50 rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-[10px]">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="font-label-caps text-[10px]">Live</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-label-caps text-[10px]">Social</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2" href="#">
+<span class="material-symbols-outlined">mail</span>
+<span class="font-label-caps text-[10px]">Inbox</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full p-2 scale-105" href="#">
+<span class="material-symbols-outlined">menu</span>
+<span class="font-label-caps text-[10px]">Menu</span>
+</a>
+</nav>
+<!-- Toast Notification System Container -->
+<div class="fixed top-20 right-8 z-[100] flex flex-col gap-md items-end pointer-events-none" id="toast-container">
+<!-- Toast Example -->
+<div class="pointer-events-auto flex items-center gap-md bg-surface-container-high border border-outline-variant border-l-4 border-l-error rounded-lg p-lg shadow-xl translate-x-[120%] transition-transform duration-500 glass-panel" id="error-toast">
+<span class="material-symbols-outlined text-error">report</span>
+<div>
+<p class="font-bold text-on-surface text-body-sm">Connection Alert</p>
+<p class="text-xs text-outline">Geo-Cluster Region US-WEST is experiencing packet loss.</p>
+</div>
+<button class="material-symbols-outlined text-outline-variant hover:text-on-surface ml-lg" onclick="hideToast()">close</button>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full py-md flex justify-between items-center px-lg border-t border-outline-variant bg-surface-dim mt-xl hidden md:flex pl-[304px]">
+<p class="font-body-sm text-body-sm text-outline">© 2024 Ecclesia OS. System v2.4.0</p>
+<div class="flex gap-lg">
+<span class="flex items-center gap-sm font-body-sm text-tertiary">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> System Health: Operational
+            </span>
+<a class="font-body-sm text-outline hover:text-on-surface" href="#">Terms</a>
+<a class="font-body-sm text-outline hover:text-on-surface" href="#">Privacy</a>
+</div>
+</footer>
+<script>
+        // Micro-interactions
+        function showToast() {
+            const toast = document.getElementById('error-toast');
+            toast.style.transform = 'translateX(0)';
+            setTimeout(hideToast, 8000);
+        }
+
+        function hideToast() {
+            const toast = document.getElementById('error-toast');
+            toast.style.transform = 'translateX(120%)';
+        }
+
+        // Trigger toast on load for effect
+        setTimeout(showToast, 1500);
+
+        // Simulated Disk Update
+        const diskProgress = document.querySelector('circle.text-secondary');
+        let diskVal = 138.23;
+        setInterval(() => {
+            diskVal += (Math.random() - 0.5) * 2;
+            diskProgress.style.strokeDashoffset = Math.max(100, Math.min(200, diskVal));
+        }, 3000);
+    </script>
+</body></html>

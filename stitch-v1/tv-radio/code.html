@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ecclesia OS | TV/Radio Module</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#4edea3",
+                    "outline": "#909097",
+                    "tertiary": "#4edea3",
+                    "surface-dim": "#031427",
+                    "error-container": "#93000a",
+                    "primary-container": "#0f172a",
+                    "on-background": "#d3e4fe",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "surface-bright": "#2a3a4f",
+                    "inverse-surface": "#d3e4fe",
+                    "on-primary-fixed": "#131b2e",
+                    "on-secondary-fixed-variant": "#004c69",
+                    "on-error": "#690005",
+                    "surface-container-high": "#1b2b3f",
+                    "inverse-on-surface": "#213145",
+                    "secondary-container": "#00a6e0",
+                    "inverse-primary": "#565e74",
+                    "background": "#031427",
+                    "on-secondary": "#00354a",
+                    "surface-container-lowest": "#000f21",
+                    "on-tertiary-container": "#009365",
+                    "on-surface-variant": "#c6c6cd",
+                    "on-secondary-container": "#00374d",
+                    "surface-variant": "#26364a",
+                    "on-secondary-fixed": "#001e2c",
+                    "surface": "#031427",
+                    "on-error-container": "#ffdad6",
+                    "primary-fixed": "#dae2fd",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-primary-container": "#798098",
+                    "on-surface": "#d3e4fe",
+                    "tertiary-container": "#001c10",
+                    "tertiary-fixed": "#6ffbbe",
+                    "on-primary": "#283044",
+                    "surface-tint": "#bec6e0",
+                    "surface-container": "#102034",
+                    "error": "#ffb4ab",
+                    "secondary": "#7bd0ff",
+                    "secondary-fixed-dim": "#7bd0ff",
+                    "surface-container-highest": "#26364a",
+                    "on-tertiary-fixed": "#002113",
+                    "primary": "#bec6e0",
+                    "secondary-fixed": "#c4e7ff",
+                    "on-tertiary": "#003824",
+                    "on-tertiary-fixed-variant": "#005236",
+                    "surface-container-low": "#0b1c30",
+                    "outline-variant": "#45464d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xl": "32px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "2xl": "48px",
+                    "3xl": "64px",
+                    "xs": "4px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Manrope"],
+                    "body-sm": ["Inter"],
+                    "headline-lg": ["Manrope"],
+                    "body-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg-mobile": ["Manrope"],
+                    "label-caps": ["JetBrains Mono"],
+                    "headline-xl": ["Manrope"],
+                    "data-mono": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "data-mono": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .skeleton-pulse {
+            background: linear-gradient(90deg, transparent 25%, rgba(190, 198, 224, 0.1) 50%, transparent 75%);
+            background-size: 200% 100%;
+            animation: skeleton-pulse 1.5s infinite;
+        }
+        @keyframes skeleton-pulse {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .live-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-[280px] bg-surface-container-low border-r border-outline-variant shadow-sm flex flex-col py-lg px-md z-50 hidden md:flex">
+<div class="mb-2xl px-sm">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">Ecclesia OS</h1>
+<p class="font-body-sm text-body-sm text-outline">Church Management</p>
+</div>
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-body-md text-body-md">Home</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-secondary font-bold border-r-2 border-secondary bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="live_tv">live_tv</span>
+<span class="font-body-md text-body-md">TV/Radio</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+<span class="font-body-md text-body-md">Social</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-body-md text-body-md">System</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="forum">forum</span>
+<span class="font-body-md text-body-md">Messages</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Configuration</span>
+</a>
+</nav>
+<button class="mb-xl mx-md py-sm px-lg bg-error-container text-on-error-container rounded-lg font-bold flex items-center justify-center gap-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px]" data-icon="sensors">sensors</span>
+            Go Live
+        </button>
+<div class="border-t border-outline-variant pt-md space-y-xs">
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-body-md text-body-md">Support</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm rounded-lg text-on-surface-variant font-medium hover:bg-surface-variant/50 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-body-md text-body-md">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-full md:w-[calc(100%-280px)] bg-surface/80 backdrop-blur-md border-b border-outline-variant h-16 flex items-center justify-between px-lg z-40">
+<div class="flex items-center gap-lg flex-1">
+<div class="relative w-full max-w-md hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-full py-2 pl-10 pr-4 font-body-sm text-body-sm focus:ring-2 focus:ring-secondary outline-none" placeholder="Search broadcasts, archives..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:text-secondary transition-colors p-2 active:opacity-80">
+<span class="material-symbols-outlined" data-icon="rss_feed">rss_feed</span>
+</button>
+<button class="text-on-surface-variant hover:text-secondary transition-colors p-2 active:opacity-80 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a young church administrator in a clean modern office setting. High-quality corporate portrait with soft studio lighting and a shallow depth of field, using a palette of deep navy and bright highlights to match the Ecclesia OS aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCErjkSz4R4COeV-B1aC7VYbVnZJtS2CcXnmB7hSUjS-Y414qfdbdhiHGPZPk-yPEDsY4Nokl0kh2_xmNavOckxVxO2s-a5y8FNdus0InWBI7y5enADip5TYbGK9Iw7G-gDw-rerGmfgSoA4E8Ee9iATV9UVz75yOBiLTuF7xE9wt2d_ZPUy2-MFYnFnzNde2nSwYGI6msVErITk_LvPSPn5y9rcGtvU0ED-ZkzcRCORzbP5F98MHiuimnmamxjfdQQc1smJAsl5ANW"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="pt-16 md:ml-[280px] h-screen overflow-hidden flex flex-col">
+<!-- Header Actions / Channel Switcher -->
+<div class="px-lg py-md flex flex-wrap items-center justify-between gap-md border-b border-outline-variant bg-surface-container-lowest">
+<div class="flex items-center gap-sm bg-surface-variant/30 p-1 rounded-xl">
+<button class="px-lg py-2 rounded-lg bg-secondary text-on-secondary-container font-bold text-body-sm transition-all">TV Broadcast</button>
+<button class="px-lg py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant/50 font-medium text-body-sm transition-all">Radio FM 104.2</button>
+<button class="px-lg py-2 rounded-lg text-on-surface-variant hover:bg-surface-variant/50 font-medium text-body-sm transition-all">Podcasts</button>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex gap-xs items-center px-md py-2 bg-surface-container-high rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-secondary" data-icon="calendar_month">calendar_month</span>
+<span class="font-data-mono text-data-mono">Nov 18 - Nov 24, 2024</span>
+</div>
+</div>
+</div>
+<div class="flex-1 flex overflow-hidden">
+<!-- Timeline Sidebar (Left) -->
+<div class="w-80 border-r border-outline-variant overflow-y-auto hide-scrollbar bg-surface-container-low px-lg py-xl">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface">Timeline</h3>
+<div class="flex items-center gap-xs px-2 py-1 bg-error/10 rounded text-error">
+<span class="relative flex h-3 w-3">
+<span class="live-pulse absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-error"></span>
+</span>
+<span class="text-[10px] font-bold tracking-widest uppercase">Live</span>
+</div>
+</div>
+<div class="space-y-xl relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant">
+<!-- Current Segment -->
+<div class="relative pl-8 group">
+<div class="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-secondary ring-4 ring-secondary/20 z-10"></div>
+<div class="bg-secondary/10 border border-secondary/30 rounded-xl p-md transform hover:translate-x-1 transition-transform cursor-pointer">
+<span class="font-data-mono text-xs text-secondary font-bold">10:00 - 11:30 AM</span>
+<h4 class="font-body-md text-body-md font-bold text-on-surface mt-xs leading-tight">Sunday Morning Service: "A New Covenant"</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Pastor Benjamin Wright</p>
+</div>
+</div>
+<!-- Next Segments -->
+<div class="relative pl-8 group opacity-60 hover:opacity-100 transition-opacity">
+<div class="absolute left-[7px] top-1.5 w-3 h-3 rounded-full bg-outline-variant z-10 group-hover:bg-tertiary transition-colors"></div>
+<div class="p-md cursor-pointer">
+<span class="font-data-mono text-xs text-outline">11:45 - 12:30 PM</span>
+<h4 class="font-body-md text-body-md font-semibold text-on-surface mt-xs leading-tight">Youth Discussion: Gen-Z Faith</h4>
+<p class="font-body-sm text-body-sm text-outline mt-xs">Community Hall Studio</p>
+</div>
+</div>
+<div class="relative pl-8 group opacity-60 hover:opacity-100 transition-opacity">
+<div class="absolute left-[7px] top-1.5 w-3 h-3 rounded-full bg-outline-variant z-10 group-hover:bg-tertiary transition-colors"></div>
+<div class="p-md cursor-pointer">
+<span class="font-data-mono text-xs text-outline">01:00 - 02:00 PM</span>
+<h4 class="font-body-md text-body-md font-semibold text-on-surface mt-xs leading-tight">Gospel Hour Music Collection</h4>
+<p class="font-body-sm text-body-sm text-outline mt-xs">Hosted by DJ Grace</p>
+</div>
+</div>
+<div class="relative pl-8 group opacity-60 hover:opacity-100 transition-opacity">
+<div class="absolute left-[7px] top-1.5 w-3 h-3 rounded-full bg-outline-variant z-10 group-hover:bg-tertiary transition-colors"></div>
+<div class="p-md cursor-pointer">
+<span class="font-data-mono text-xs text-outline">02:30 - 04:00 PM</span>
+<h4 class="font-body-md text-body-md font-semibold text-on-surface mt-xs leading-tight">The Leadership Roundtable</h4>
+<p class="font-body-sm text-body-sm text-outline mt-xs">Guest: Dr. Marcus Thorne</p>
+</div>
+</div>
+</div>
+</div>
+<!-- 7x12 Grid Area (Center/Right) -->
+<div class="flex-1 overflow-auto bg-background p-lg">
+<div class="min-w-[1000px]">
+<!-- Grid Legend -->
+<div class="flex items-center justify-end gap-lg mb-md">
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded bg-secondary-container"></div>
+<span class="font-label-caps text-label-caps text-outline">Service</span>
+</div>
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded bg-tertiary"></div>
+<span class="font-label-caps text-label-caps text-outline">Youth</span>
+</div>
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded bg-amber-500"></div>
+<span class="font-label-caps text-label-caps text-outline">Talk</span>
+</div>
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded bg-purple-500"></div>
+<span class="font-label-caps text-label-caps text-outline">Music</span>
+</div>
+</div>
+<!-- Weekly Header -->
+<div class="grid grid-cols-8 gap-xs mb-xs">
+<div class="h-10"></div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Mon</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Tue</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Wed</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Thu</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg border-b-2 border-secondary">Fri</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Sat</div>
+<div class="h-10 flex items-center justify-center font-label-caps text-label-caps bg-surface-container text-on-surface rounded-t-lg">Sun</div>
+</div>
+<!-- Grid Content -->
+<div class="grid grid-cols-8 gap-xs">
+<!-- Time Column -->
+<div class="space-y-xs">
+<div class="h-20 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">08:00</div>
+<div class="h-20 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">10:00</div>
+<div class="h-20 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">12:00</div>
+<div class="h-20 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">14:00</div>
+<div class="h-20 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">16:00</div>
+<div class="h-20 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">18:00</div>
+<div class="h-20 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">20:00</div>
+<div class="h-20 flex items-start justify-end pr-md pt-2 font-data-mono text-xs text-outline">22:00</div>
+</div>
+<!-- Days Columns (with mixed actual content and skeleton) -->
+<!-- Mon -->
+<div class="space-y-xs">
+<div class="h-20 bg-surface-container rounded-lg p-xs flex flex-col justify-between hover:bg-surface-bright transition-colors cursor-pointer border-l-4 border-purple-500">
+<span class="text-[10px] font-bold text-purple-500">Music</span>
+<span class="font-body-sm text-[11px] leading-tight font-medium">Sunrise Hymns</span>
+</div>
+<div class="h-20 bg-surface-container rounded-lg p-xs flex flex-col justify-between hover:bg-surface-bright transition-colors cursor-pointer border-l-4 border-amber-500">
+<span class="text-[10px] font-bold text-amber-500">Talk</span>
+<span class="font-body-sm text-[11px] leading-tight font-medium">Daily Bread</span>
+</div>
+<div class="h-40 skeleton-pulse bg-surface-container/50 rounded-lg"></div> <!-- Skeleton -->
+<div class="h-20 bg-surface-container rounded-lg p-xs border-l-4 border-tertiary">
+<span class="text-[10px] font-bold text-tertiary">Youth</span>
+<span class="font-body-sm text-[11px] font-medium">After School Live</span>
+</div>
+</div>
+<!-- Tue (Full Skeletons to show loading) -->
+<div class="space-y-xs">
+<div class="h-20 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-20 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-40 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-40 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-20 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+</div>
+<!-- Wed -->
+<div class="space-y-xs">
+<div class="h-20 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-40 bg-secondary-container/40 rounded-lg p-xs border-l-4 border-secondary-container">
+<span class="text-[10px] font-bold text-secondary">Service</span>
+<span class="font-body-sm text-[11px] font-medium">Mid-Week Prayer</span>
+</div>
+<div class="h-20 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-60 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+</div>
+<!-- Thu -->
+<div class="space-y-xs">
+<div class="h-20 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-20 bg-surface-container rounded-lg p-xs border-l-4 border-purple-500">
+<span class="text-[10px] font-bold text-purple-500">Music</span>
+<span class="font-body-sm text-[11px] font-medium">Jazz Gospel</span>
+</div>
+<div class="h-60 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-40 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+</div>
+<!-- Fri (Active Day) -->
+<div class="space-y-xs relative">
+<div class="h-20 bg-surface-container rounded-lg p-xs border-l-4 border-amber-500">
+<span class="text-[10px] font-bold text-amber-500">Talk</span>
+<span class="font-body-sm text-[11px] font-medium">Friday Focus</span>
+</div>
+<!-- Live Indicator Line -->
+<div class="absolute w-[calc(100%+8px)] -left-1 top-[110px] border-t-2 border-secondary z-20 pointer-events-none">
+<div class="absolute -left-1.5 -top-1.5 w-3 h-3 rounded-full bg-secondary"></div>
+</div>
+<div class="h-20 bg-secondary-container text-white rounded-lg p-xs border-l-4 border-white shadow-lg ring-2 ring-secondary/50">
+<span class="text-[10px] font-bold opacity-80">Service</span>
+<span class="font-body-sm text-[11px] font-bold">LIVE: Healing Hour</span>
+</div>
+<div class="h-20 bg-surface-container rounded-lg p-xs border-l-4 border-tertiary">
+<span class="text-[10px] font-bold text-tertiary">Youth</span>
+<span class="font-body-sm text-[11px] font-medium">Game Night</span>
+</div>
+<div class="h-80 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+</div>
+<!-- Sat -->
+<div class="space-y-xs">
+<div class="h-40 bg-surface-container rounded-lg p-xs border-l-4 border-purple-500">
+<span class="text-[10px] font-bold text-purple-500">Music</span>
+<span class="font-body-sm text-[11px] font-medium">Worship Rehearsal</span>
+</div>
+<div class="h-20 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-40 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+<div class="h-40 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+</div>
+<!-- Sun -->
+<div class="space-y-xs">
+<div class="h-20 bg-secondary-container/20 rounded-lg p-xs border-l-4 border-secondary">
+<span class="text-[10px] font-bold text-secondary">Service</span>
+<span class="font-body-sm text-[11px] font-medium">Early Service</span>
+</div>
+<div class="h-40 bg-secondary-container rounded-lg p-xs border-l-4 border-white">
+<span class="text-[10px] font-bold text-white">Service</span>
+<span class="font-body-sm text-[11px] font-bold text-white">Main Service</span>
+</div>
+<div class="h-20 bg-secondary-container/20 rounded-lg p-xs border-l-4 border-secondary">
+<span class="text-[10px] font-bold text-secondary">Service</span>
+<span class="font-body-sm text-[11px] font-medium">Evening Grace</span>
+</div>
+<div class="h-80 skeleton-pulse bg-surface-container/50 rounded-lg"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mini Player (Floating Bottom Right) -->
+<div class="fixed bottom-lg right-lg w-80 bg-surface-container-high border border-outline-variant shadow-2xl rounded-2xl p-md z-50 flex gap-md items-center group transform translate-y-0 transition-transform hover:-translate-y-1">
+<div class="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+<img alt="Live Stream Cover" class="w-full h-full object-cover" data-alt="A close-up of a high-end cinematic broadcast camera focused on a softly lit stage with a wooden pulpit and warm golden lighting. The background is a blurred sanctuary with deep navy shadows and elegant architectural lines. The image captures a serene, high-production-value church media aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnHrI0SHHIPquY3AfjtSFrPODk3zW7Nk7xDKypOaUAGt8CxX_qSjwXFEN13Mj73GC6wxvJfJklN_KMdFJSkiRD4Dwl4iPpNs2MxILEV3fO6cRFJ8RHrQOd8EcqTKAyDRARzgTfuqDaPtj7YnQSVzn_NBghLG8U-RtXs8RdXzoko3F7E5NhIe-rR-GG2JgvyLPc9dc5rIwG47doCV0-94pSu_aOfhySzew8X0j8x9GbkJ-iCwHdkeQnccefri35_IsFqT2Puyw8nLfw"/>
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-3xl" data-icon="play_circle">play_circle</span>
+</div>
+<div class="absolute bottom-1 right-1 bg-error text-[8px] font-bold px-1 rounded uppercase">Live</div>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-label-caps text-[10px] text-secondary tracking-widest uppercase mb-xs">Now Streaming</p>
+<h5 class="font-body-md text-body-md font-bold text-on-surface truncate">Healing Hour: Fri Session</h5>
+<p class="font-body-sm text-xs text-outline truncate">Pastor Benjamin Wright</p>
+<div class="flex items-center gap-sm mt-md">
+<button class="text-on-surface-variant hover:text-secondary"><span class="material-symbols-outlined text-xl" data-icon="skip_previous">skip_previous</span></button>
+<button class="bg-secondary text-on-secondary h-8 w-8 rounded-full flex items-center justify-center shadow-lg"><span class="material-symbols-outlined fill" data-icon="pause" style="font-variation-settings: 'FILL' 1;">pause</span></button>
+<button class="text-on-surface-variant hover:text-secondary"><span class="material-symbols-outlined text-xl" data-icon="skip_next">skip_next</span></button>
+<div class="flex-1"></div>
+<button class="text-outline hover:text-on-surface"><span class="material-symbols-outlined text-lg" data-icon="open_in_full">open_in_full</span></button>
+</div>
+</div>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-highest border-t border-outline-variant shadow-lg z-50 rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full p-2 scale-105 transition-all">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+<span class="font-label-caps text-label-caps">Live</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-label-caps text-label-caps">Social</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined" data-icon="mail">mail</span>
+<span class="font-label-caps text-label-caps">Inbox</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+<span class="font-label-caps text-label-caps">Menu</span>
+</button>
+</nav>
+<script>
+        // Simple micro-interaction for the timeline segments
+        document.querySelectorAll('.pl-8.group').forEach(item => {
+            item.addEventListener('mouseenter', () => {
+                const icon = item.querySelector('.absolute.left-\\[7px\\]');
+                if(icon) {
+                    icon.style.transform = 'scale(1.3)';
+                    icon.style.transition = 'transform 0.2s ease';
+                }
+            });
+            item.addEventListener('mouseleave', () => {
+                const icon = item.querySelector('.absolute.left-\\[7px\\]');
+                if(icon) {
+                    icon.style.transform = 'scale(1)';
+                }
+            });
+        });
+
+        // Toggle Channel Tabs
+        const tabs = document.querySelectorAll('.bg-surface-variant\\/30 button');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => {
+                    t.classList.remove('bg-secondary', 'text-on-secondary-container', 'font-bold');
+                    t.classList.add('text-on-surface-variant', 'font-medium');
+                });
+                tab.classList.add('bg-secondary', 'text-on-secondary-container', 'font-bold');
+                tab.classList.remove('text-on-surface-variant', 'font-medium');
+            });
+        });
+    </script>
+</body></html>
